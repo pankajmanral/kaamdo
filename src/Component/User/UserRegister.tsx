@@ -19,7 +19,7 @@ export default function UserRegister() {
         <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
             <div className="bg-white py-2 px-8 rounded-lg shadow-md w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl">
                 <h1 className="text-2xl font-bold mb-4 text-center">
-                    Vendor Register
+                    User Register
                 </h1>
 
                 <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
@@ -128,115 +128,7 @@ export default function UserRegister() {
                         {errors.gender && <p className="text-red-500 text-sm ps-2 py-2">{errors.gender.message}</p>}
                     </div>
 
-                    {/* Preferred Work Location */}
-                    <div>
-                        <label className="block text-gray-700 font-medium mb-2">
-                            Preferred Work Location
-                        </label>
-                        <div className="flex space-x-6">
-                            <label className="inline-flex items-center">
-                                <input
-                                    type="radio"
-                                    // name="location"
-                                    value="inside-city"
-                                    className="form-radio h-5 w-5 text-blue-500"
-                                    {...register("location",{
-                                        required: "Please choose your prefered work location"
-                                    })}
-                                    defaultValue=""
-                                />
-                                <span className="ml-2 text-gray-700">
-                                    Inside City
-                                </span>
-                            </label>
-                            <label className="inline-flex items-center">
-                                <input
-                                    type="radio"
-                                    name="location"
-                                    value="outside-city"
-                                    className="form-radio h-5 w-5 text-blue-500"
-                                />
-                                <span className="ml-2 text-gray-700">
-                                    Outside City
-                                </span>
-                            </label>
-                        </div>
-                        {errors.location && <p className="text-red-500 text-sm ps-2 py-2">Please choose your work location</p>}
-                    </div>
-
-                    {/* Document Type Selection */}
-                    <div>
-                        <label
-                            htmlFor="documentType"
-                            className="block text-gray-700 font-medium mb-1"
-                        >
-                            Select Document Type
-                        </label>
-                        <select
-                            id="documentType"
-                            name="documentType"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        >
-                            <option value="">Choose document type</option>
-                            <option value="aadhar">Aadhaar Card</option>
-                            <option value="pan">PAN Card</option>
-                            <option value="other">Other Proof</option>
-                        </select>
-                    </div>
-
-                    {/* Document Upload */}
-                    <div>
-                        <label
-                            htmlFor="document"
-                            className="block text-gray-700 font-medium mb-1"
-                        >
-                            Upload Document
-                        </label>
-                        <input
-                            type="file"
-                            id="document"
-                            name="document"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            className="block w-full text-sm text-gray-700
-                                        file:mr-4 file:py-2 file:px-4 file:rounded-md
-                                        file:border-0 file:text-sm file:font-semibold
-                                        file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                            Accepted: PDF, JPG, PNG
-                        </p>
-                    </div>
-
-                    {/* Vendor Working Type */}
-                    <div>
-                        <label className="block text-gray-700 font-medium mb-2">
-                            Are you working individually or as a group?
-                        </label>
-                        <div className="flex space-x-6">
-                            <label className="inline-flex items-center">
-                                <input
-                                    type="radio"
-                                    name="vendorWorkingType"
-                                    value="individual"
-                                    className="form-radio h-5 w-5 text-blue-500"
-                                />
-                                <span className="ml-2 text-gray-700">
-                                    Individually
-                                </span>
-                            </label>
-                            <label className="inline-flex items-center">
-                                <input
-                                    type="radio"
-                                    name="vendorWorkingType"
-                                    value="group"
-                                    className="form-radio h-5 w-5 text-blue-500"
-                                />
-                                <span className="ml-2 text-gray-700">
-                                    Group
-                                </span>
-                            </label>
-                        </div>
-                    </div>
+                            
 
                     {/* Submit Button */}
                     <button
@@ -249,7 +141,7 @@ export default function UserRegister() {
 
                 <p className="text-sm text-gray-500 mt-4 text-center">
                     Already have an account?{" "}
-                    <Link to="/login" className="text-blue-500 hover:underline">
+                    <Link to="/User/login" className="text-blue-500 hover:underline">
                         Login
                     </Link>
                 </p>

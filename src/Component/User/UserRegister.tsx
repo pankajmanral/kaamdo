@@ -5,11 +5,12 @@ import { api } from "../../lib/api";
 
 type RegisterFormInputs = {
   name: string;
-  email: string;
+  phone: string;            // ✅ required
+  email?: string;           // ✅ optional
   password: string;
   confirmPassword: string;
-  gender: string;
-  location: string;
+  gender?: string;          // kept for UI, not sent
+  location?: string;        // kept for UI, not sent
 };
 
 export default function UserRegister() {
@@ -21,17 +22,22 @@ export default function UserRegister() {
     reset,
   } = useForm<RegisterFormInputs>();
 
-  const onSubmit = async (data: RegisterFormInputs) => {
-    // Only send what backend needs. Keep gender/location locally unless backend supports them.
-    const { name, email, password } = data;
-    try {
-      const { user } = await api.register({ name, email, password }); // role optional
-      alert(`Registered: ${user.email}`);
-      reset();
-    } catch (e: any) {
-      alert(e.message ?? "Registration failed");
-    }
+  // in UserRegister.tsx
+const onSubmit = async (data: RegisterFormInputs) => {
+  const payload = {
+    name: data.name,
+    phone: data.phone.replace(/[\s-]/g, ""), // normalize
+    password: data.password,
+    email: data.email || undefined,          // optional
   };
+  try {
+    const { user } = await api.register(payload);
+    alert(`Registered: ${user.name} (${user.phone})`);
+  } catch (e: any) {
+    alert(e.message ?? "Registration failed");
+  }
+};
+
 
   const passwordValue = watch("password");
 
@@ -49,6 +55,7 @@ export default function UserRegister() {
             <input
               type="text"
               id="name"
+              autoComplete="name"
               className="w-full ps-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
               placeholder="Enter your name"
               {...register("name", {
@@ -60,18 +67,42 @@ export default function UserRegister() {
             {errors.name && <p className="text-red-500 text-sm ps-2 py-2">{errors.name.message}</p>}
           </div>
 
-          {/* Email */}
+          {/* Phone (required) */}
+          <div>
+            <label htmlFor="phone" className="block text-gray-700 font-medium mb-1">
+              Phone
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              autoComplete="tel"
+              className="w-full ps-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="e.g. 9876543210 or +91XXXXXXXXXX"
+              {...register("phone", {
+                required: "Phone is required",
+                pattern: {
+                  // allows digits and optional leading +
+                  value: /^\+?\d{10,15}$/,
+                  message: "Enter a valid phone (10–15 digits, optional +)",
+                },
+              })}
+            />
+            {errors.phone && <p className="text-red-500 text-sm ps-2 py-2">{errors.phone.message}</p>}
+          </div>
+
+          {/* Email (optional) */}
           <div>
             <label htmlFor="email" className="block text-gray-700 font-medium mb-1">
-              Email
+              Email (optional)
             </label>
             <input
               type="email"
               id="email"
+              autoComplete="email"
               className="w-full ps-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
               placeholder="Enter your email"
               {...register("email", {
-                required: "Email Id is required",
+                // no "required" -> optional
                 pattern: {
                   value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
                   message: "Invalid email format",
@@ -90,6 +121,7 @@ export default function UserRegister() {
               <input
                 type="password"
                 id="password"
+                autoComplete="new-password"
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
                 placeholder="Enter your password"
                 {...register("password", {
@@ -107,6 +139,7 @@ export default function UserRegister() {
               <input
                 type="password"
                 id="confirmPassword"
+                autoComplete="new-password"
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
                 placeholder="Confirm your password"
                 {...register("confirmPassword", {
@@ -120,7 +153,7 @@ export default function UserRegister() {
             </div>
           </div>
 
-          {/* Gender */}
+          {/* Gender (UI only) */}
           <div>
             <label htmlFor="gender" className="block text-gray-700 font-medium mb-1">
               Gender
@@ -128,7 +161,7 @@ export default function UserRegister() {
             <select
               id="gender"
               className="w-full ps-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              {...register("gender", { required: "Please select a gender" })}
+              {...register("gender")}
               defaultValue=""
             >
               <option value="">Select gender</option>
@@ -136,10 +169,9 @@ export default function UserRegister() {
               <option value="female">Female</option>
               <option value="other">Other</option>
             </select>
-            {errors.gender && <p className="text-red-500 text-sm ps-2 py-2">{errors.gender.message}</p>}
           </div>
 
-          {/* Location (kept for UI completeness) */}
+          {/* Location (UI only) */}
           <div>
             <label htmlFor="location" className="block text-gray-700 font-medium mb-1">
               Location (optional)
@@ -165,7 +197,8 @@ export default function UserRegister() {
 
         <p className="text-sm text-gray-500 mt-4 text-center">
           Already have an account?{" "}
-          <Link to="/User/login" className="text-blue-500 hover:underline">
+          {/* ⚠️ Make sure this matches your actual route (likely '/login', lower-case) */}
+          <Link to="/login" className="text-blue-500 hover:underline">
             Login
           </Link>
         </p>
@@ -173,4 +206,3 @@ export default function UserRegister() {
     </div>
   );
 }
-    

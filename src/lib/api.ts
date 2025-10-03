@@ -20,17 +20,30 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return data as T;
 }
 
+// ---------- Types that reflect your backend now ----------
+type Role = 'customer' | 'vendor' | 'admin';
+
+export type UserDTO = {
+  id: string;
+  name: string;
+  phone: string;
+  role: Role;
+  email: string | null; // backend sends null if absent (we can normalize to null)
+};
+
 export const api = {
-  register(payload: { name: string; email: string; password: string; role?: 'customer'|'vendor'|'admin' }) {
-    return request<{ user: { id: string; email: string; name: string; role: string } }>(
+  register(payload: { name: string; phone: string; password: string; email?: string; role?: 'customer'|'vendor'|'admin' }) {
+    return request<{ user: { id: string; name: string; phone: string; email: string | null; role: string } }>(
       '/auth/register',
       { method: 'POST', body: JSON.stringify(payload) }
     );
   },
-  login(payload: { email: string; password: string }) {
-    return request<{ token: string; user: { id: string; email: string; name: string; role: string } }>(
+  login(payload: { phone: string; password: string }) {
+    return request<{ token: string; user: { id: string; name: string; phone: string; email: string | null; role: string } }>(
       '/auth/login',
       { method: 'POST', body: JSON.stringify(payload) }
     );
   },
 };
+
+

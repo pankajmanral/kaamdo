@@ -3,10 +3,7 @@ import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 
-type LoginFormInput = {
-  email: string;
-  password: string;
-};
+type LoginFormInput = { phone: string; password: string };
 
 export default function UserLogin() {
   const {
@@ -15,15 +12,17 @@ export default function UserLogin() {
     formState: { errors, isSubmitting },
   } = useForm<LoginFormInput>();
 
-  const onSubmit = async (data: LoginFormInput) => {
+  const onSubmit = async ({ phone, password }: LoginFormInput) => {
     try {
-      const { token, user } = await api.login(data);
+      // normalize common separators; keep optional leading +
+      const normalizedPhone = phone.replace(/[\s-]/g, "");
+      const { token, user } = await api.login({ phone: normalizedPhone, password });
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
-      alert(`Welcome, ${user.name}`);
-      // navigate('/User/dashboard') if you add routing
+      alert(`Welcome, ${user.name}, logged in successfully!`);
+      // navigate("/dashboard");
     } catch (e: any) {
-      alert(e.message ?? "Login failed");
+      alert(e?.message ?? "Login failed");
     }
   };
 
@@ -33,25 +32,27 @@ export default function UserLogin() {
         <h1 className="text-2xl font-bold mb-6 text-center">User Login</h1>
 
         <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
-          {/* Email */}
+          {/* Phone */}
           <div>
-            <label htmlFor="email" className="block text-gray-700 font-medium mb-1">
-              Email
+            <label htmlFor="phone" className="block text-gray-700 font-medium mb-1">
+              Phone
             </label>
             <input
-              type="email"
-              id="email"
+              type="tel"
+              id="phone"
               className="w-full ps-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="Enter your email"
-              {...register("email", {
-                required: "Email is required",
+              placeholder="e.g. 9876543210 or +91XXXXXXXXXX"
+              {...register("phone", {
+                required: "Phone is required",
                 pattern: {
-                  value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                  message: "Invalid email id",
+                  value: /^\+?\d{10,15}$/,
+                  message: "Enter a valid phone (10–15 digits, optional +)",
                 },
               })}
             />
-            {errors.email && <p className="text-red-500 text-sm ps-2 py-2">{errors.email.message}</p>}
+            {errors.phone && (
+              <p className="text-red-500 text-sm ps-2 py-2">{errors.phone.message}</p>
+            )}
           </div>
 
           {/* Password */}
@@ -69,7 +70,9 @@ export default function UserLogin() {
                 minLength: { value: 6, message: "Min 6 characters" },
               })}
             />
-            {errors.password && <p className="text-red-500 text-sm ps-2 py-2">{errors.password.message}</p>}
+            {errors.password && (
+              <p className="text-red-500 text-sm ps-2 py-2">{errors.password.message}</p>
+            )}
           </div>
 
           {/* Submit */}

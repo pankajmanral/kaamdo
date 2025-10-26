@@ -23,7 +23,6 @@ export default function VendorLogin() {
             })
 
             if(response.status === 200){
-                console.log(response.data.message)   
                 toast.success("User logged in");
                 navigate("/")
             }
@@ -41,9 +40,9 @@ export default function VendorLogin() {
                     Vendor Login
                 </h1>
 
-                <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+                <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
                     {/* Phone */}
-                    <div>
+                    <div className="mt-4">
                         <label htmlFor="phone" className="block text-gray-700 font-medium mb-1" >
                             Phone
                         </label>
@@ -57,11 +56,11 @@ export default function VendorLogin() {
                             }
                         })}
                         />
-                        {errors.phone && <p className="text-red-500 text-sm ps-2 py-2">{errors.phone.message}</p>}
+                        {errors.phone ? <p className={`text-sm ps-2 h-4 my-1 ${errors.phone.message ? "text-red-500" : "invisible"}`}>{errors.phone.message}</p> : <p className="text-sm ps-2 h-4 my-1 invisible">This is for the error</p>}
                     </div>
 
                     {/* Password */}
-                    <div>
+                    <div className="mt-4">
                         <label  htmlFor="password" className="block text-gray-700 font-medium mb-1">
                             Password
                         </label>
@@ -76,11 +75,12 @@ export default function VendorLogin() {
                             })
                         }
                         />
-                        {errors.password && <p className="text-red-500 text-sm ps-2 py-2">{errors.password.message}</p>}
+                        {errors.password ? <p className={`text-sm ps-2 h-4 my-1 ${errors.password.message ? "text-red-500" : "invisible"}`}>{errors.password.message}</p> : <p className="text-sm ps-2 h-4 my-1 invisible">This is for the error</p>}
+
                     </div>
 
                     {/* Submit Button */}
-                    <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors">
+                    <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors mt-10">
                         Login
                     </button>
                 </form>

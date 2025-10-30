@@ -168,25 +168,22 @@ export default function UserRegister() {
 
                     {/* location */}
                     <div>
-                        <label
-                            htmlFor="location"
-                            className="block text-gray-700 font-medium mb-1"
-                        >
-                            Enter location
+                        <label htmlFor="location" className="block text-gray-700 font-medium mb-1">
+                            Select your working city
                         </label>
-                        <input
-                            type="text"
-                            id="location"
-                            className="w-full ps-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                            placeholder="Enter your location"
-                            {...register("location", {
-                                required: "Location is required eg: Mumbai",
-                                pattern: {
-                                    value: /^[a-zA-Z]{3,}$/,
-                                    message: "Enter your location",
-                                },
+                        <select id="location" className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            {...register("location",{
+                                required: "Please choose the city you want to work in",
                             })}
-                        />
+                        >
+                            <option value="mumbai">Mumbai</option>
+                            <option value="pune">Pune</option>
+                            <option value="banglore">Banglore</option>
+                            <option value="delhi">Delhi</option>
+                            <option value="chennai">Chennai</option>
+                            <option value="hyderabad">Hyderabad</option>
+                            <option value="kolkata">Kolkata</option>
+                        </select>
                         {errors.location && <p className="text-red-500 text-sm ps-2 py-2">{errors.location.message}</p>}
                     </div>
 

@@ -1,17 +1,22 @@
-import { ToastContainer } from "react-toastify";
+import Home from "./Component/Home";
 import VendorLogin from "./Component/VendorLogin";
 import VendorRegister from "./Component/VendorRegister";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./Component/Home";
+import { ToastContainer } from "react-toastify";
+import ProtectedRoutes from "./utils/ProtectedRoutes";
+import JobListing from "./Component/JobListing";
 
 export default function App(){
 	return(
 		<>
 			<Router>
 				<Routes>
-					<Route path="/" element={<Home/>} />
 					<Route path="/register" element={<VendorRegister/>} />
 					<Route path="/login" element={<VendorLogin/>}/>
+                    <Route element={<ProtectedRoutes/>}>
+					    <Route path="/" element={<Home/>} />
+                        <Route path="vendorJobs" element={<JobListing/>}/>
+                    </Route>
 				</Routes>
 			</Router>
 

@@ -41,12 +41,12 @@ export default function JobListing(){
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Sr.No</th> 
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Posted By</th> 
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Job type</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Details</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide"></th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide"></th>
+                            <th className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">Sr.No</th> 
+                            <th className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">Posted By</th> 
+                            <th className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">Job type</th>
+                            <th className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide text-left">Details</th>
+                            <th className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center"></th>
+                            <th className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center"></th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-100">
@@ -55,10 +55,10 @@ export default function JobListing(){
 
                         {data.map((item, index) => (
                             <tr className="hover:bg-gray-50">
-                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{index + 1}</td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{item.postedBy}</td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{item.jobName}</td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{item.details}</td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{index + 1}</td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{item.postedBy}</td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{item.jobName}</td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-left">{item.details}</td>
                                 <td className="px-4 py-3 text-sm text-gray-700">
                                 <button className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors">Bid</button>
                             </td>

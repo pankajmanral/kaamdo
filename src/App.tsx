@@ -4,6 +4,7 @@ import VendorRegister from "./Component/VendorRegister";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import ProtectedRoutes from "./utils/ProtectedRoutes";
+import JobListing from "./Component/JobListing";
 
 export default function App(){
 	return(
@@ -14,6 +15,7 @@ export default function App(){
 					<Route path="/login" element={<VendorLogin/>}/>
                     <Route element={<ProtectedRoutes/>}>
 					    <Route path="/" element={<Home/>} />
+                        <Route path="vendorJobs" element={<JobListing/>}/>
                     </Route>
 				</Routes>
 			</Router>

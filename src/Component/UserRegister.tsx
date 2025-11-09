@@ -5,17 +5,14 @@ import { toast } from "react-toastify";
 
 interface RegisterFormInputs {
     name: string,
-    email: string,
     phone: string
-    gender: string,
+    email: string,
     password: string,
+    gender: string,
     location: string,
-    preferredWorkLocation: string,
-    vendorType: string,
-    documentType: string
 }
 
-export default function VendorRegister() {
+export default function UserRegister() {
     const { register, handleSubmit, formState: { errors }} = useForm<RegisterFormInputs>();
     const navigate = useNavigate()
 
@@ -23,7 +20,7 @@ export default function VendorRegister() {
 
         try {
             
-            const response = await axios.post("http://localhost:4000/api/vendorRegister", formData, {
+            const response = await axios.post("http://localhost:4000/api/register", formData, {
                 headers : {
                     "Content-Type" : "application/json"
                 }
@@ -187,119 +184,6 @@ export default function VendorRegister() {
                         {errors.location && <p className="text-red-500 text-sm ps-2 py-2">{errors.location.message}</p>}
                     </div>
 
-                    {/* Preferred Work Location */}
-                    <div>
-                        <label className="block text-gray-700 font-medium mb-2">
-                            Preferred Work Location
-                        </label>
-                        <div className="flex space-x-6">
-                            <label className="inline-flex items-center">
-                                <input
-                                    type="radio"
-                                    // name="location"
-                                    value="inside"
-                                    className="form-radio h-5 w-5 text-blue-500"
-                                    {...register("preferredWorkLocation",{
-                                        required: "Please choose your prefered work location"
-                                    })}
-                                />
-                                <span className="ml-2 text-gray-700">
-                                    Inside City
-                                </span>
-                            </label>
-                            <label className="inline-flex items-center">
-                                <input
-                                    type="radio"
-                                    // name="location"
-                                    value="outside"
-                                    className="form-radio h-5 w-5 text-blue-500"
-                                    {...register("preferredWorkLocation",{
-                                        required: "Please chooose your prefered work location"
-                                    })}
-                                />
-                                <span className="ml-2 text-gray-700">
-                                    Outside City
-                                </span>
-                            </label>
-                            <label className="inline-flex items-center">
-                                <input
-                                    type="radio"
-                                    // name="location"
-                                    value="both"
-                                    className="form-radio h-5 w-5 text-blue-500"
-                                    {...register("preferredWorkLocation",{
-                                        required: "Please chooose your prefered work location"
-                                    })}
-                                />
-                                <span className="ml-2 text-gray-700">
-                                    Both
-                                </span>
-                            </label>
-                        </div>
-                        {errors.location && <p className="text-red-500 text-sm ps-2 py-2">Please choose your work location</p>}
-                    </div>
-
-                    {/* Document Type Selection */}
-                    <div>
-                        <label
-                            htmlFor="documentType"
-                            className="block text-gray-700 font-medium mb-1"
-                        >
-                            Select Document Type
-                        </label>
-                        <select
-                            id="documentType"
-                            // name="documentType"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                            {...register("documentType",{
-                                required: "Please choose the document to be uploaded"
-                            })}
-                        >
-                            <option value="">Choose document type</option>
-                            <option value="aadhar">Aadhaar Card</option>
-                            <option value="pan">PAN Card</option>
-                            <option value="other">Other Proof</option>
-                        </select>
-                        {errors.documentType && <p className="text-red-500 text-sm ps-2 py-2">{errors.documentType.message}</p>}
-                    </div>
-
-                    {/* Vendor Working Type */}
-                    <div>
-                        <label className="block text-gray-700 font-medium mb-2">
-                            Are you working individually or as a group?
-                        </label>
-                        <div className="flex space-x-6">
-                            <label className="inline-flex items-center">
-                                <input
-                                    type="radio"
-                                    // name="vendorWorkingType"
-                                    value="individual"
-                                    className="form-radio h-5 w-5 text-blue-500"
-                                    {...register("vendorType",{
-                                        required: "Please choose the vendor type"
-                                    })}
-                                />
-                                <span className="ml-2 text-gray-700">
-                                    Individually
-                                </span>
-                            </label>
-                            <label className="inline-flex items-center">
-                                <input
-                                    type="radio"
-                                    // name="vendorWorkingType"
-                                    value="company"
-                                    className="form-radio h-5 w-5 text-blue-500"
-                                    {...register("vendorType",{
-                                        required: "Please choose the vendor type"
-                                    })}
-                                />
-                                <span className="ml-2 text-gray-700">
-                                    Company
-                                </span>
-                            </label>
-                        </div>
-                        {errors.vendorType && <p className="text-red-500 text-sm ps-2 py-2">{errors.vendorType.message}</p>}
-                    </div>
 
                     {/* Submit Button */}
                     <button

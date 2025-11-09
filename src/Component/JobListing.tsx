@@ -1,5 +1,5 @@
 import axios from "axios"
-import { useEffect, useState } from "react"
+import { use, useEffect, useState } from "react"
 import { useForm } from "react-hook-form";
 
 interface Job {
@@ -21,10 +21,40 @@ export default function JobListing() {
 
     const [data, setData] = useState<Job[]>([]);
     const [showModal, setShowModal] = useState(false)
+    const [selectedJobId, setSelectedJobId] = useState<number | null>(null)
     const {register, handleSubmit, formState: {errors}} = useForm<BidData>()
 
-    const onSubmit = function(formData: BidData){
-        console.log(errors)
+    const onSubmit = async function(formData: BidData){
+        try {
+
+            if(!selectedJobId){
+                alert("No job selected")
+                return;
+            }
+
+            const token = localStorage.getItem("token")
+
+            const response = await axios.post(`http://localhost:4000/api/placeBid/${selectedJobId}`,
+                {
+                    amount: formData.amount,
+                    message: formData.message
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+            alert("Bid placed successfully")
+            console.log("Response", response.data)
+
+            setShowModal(false)
+
+        } catch (error) {
+            console.log("Error placing bid",error)
+        }
     }
 
     const getData = async () => {
@@ -91,6 +121,7 @@ export default function JobListing() {
                                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-sm text-gray-700">
                                         <button className="min-w-[80px] sm:min-w-[100px] bg-blue-500 text-white py-1.5 sm:py-2 rounded-md hover:bg-blue-600 transition-colors" onClick={()=>{
                                             setShowModal(true)
+                                            setSelectedJobId(item.jobId)
                                         }}>
                                             Bid
                                         </button>
@@ -121,7 +152,10 @@ export default function JobListing() {
                                 Details: <span className="font-normal">{item.details}</span>
                             </p>
                             <div className="flex justify-end">
-                                <button className="bg-blue-500 text-white px-3 py-1.5 rounded-md text-sm hover:bg-blue-600 transition" onClick={()=>setShowModal(true)}>
+                                <button className="bg-blue-500 text-white px-3 py-1.5 rounded-md text-sm hover:bg-blue-600 transition" onClick={()=>{
+                                            setShowModal(true)
+                                            setSelectedJobId(item.jobId)
+                                        }}>
                                     Bid
                                 </button>
                             </div>
@@ -130,7 +164,7 @@ export default function JobListing() {
                 </div>
 
                 {showModal && (
-                    <div id="bidModal"className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div id="bidModal" className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         {/* Modal Box */}
                         <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6 relative">
                             {/* Close Button */}
@@ -149,11 +183,11 @@ export default function JobListing() {
                                         Bid Amount (₹)
                                     </label>
                                     <input type="number" id="amount" className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="Enter your bid amount" 
+                                        placeholder="Enter your bid amount"
                                         {...register("amount",{
                                             required: "Please enter the amount",
                                             pattern: {
-                                                value: /^[0-9]{1,5}$/,
+                                                value: /^[0-9]{2,9}$/,
                                                 message: "Enter charges"
                                             }
                                         })}/>

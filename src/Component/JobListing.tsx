@@ -20,7 +20,7 @@ export default function JobListing(){
         // get the authentication token from the localstorage 
         const token = localStorage.getItem("token")
 
-        const response = await axios.get("http://localhost:4000/api/jobListing",{
+        const response:any = await axios.get("http://localhost:4000/api/jobListing",{
             headers:{
                 Authorization: `Bearer ${token}`
             }

@@ -8,7 +8,7 @@ interface LoginFormInput{
     password: string
 }
 
-export default function VendorLogin() {
+export default function UserLogin() {
     
     const {register, handleSubmit, formState: {errors}} = useForm<LoginFormInput>();
     const navigate = useNavigate()
@@ -16,7 +16,7 @@ export default function VendorLogin() {
     const onSubmit = async(formData: LoginFormInput) => {
         try {
             
-            const response:any = await axios.post("http://localhost:4000/api/vendorLogin", formData, {
+            const response:any = await axios.post("http://localhost:4000/api/login", formData, {
                 headers: {
                     "Content-Type": "application/json"
                 }
@@ -25,7 +25,7 @@ export default function VendorLogin() {
             if(response.status === 200){
                 localStorage.setItem("token", response.data.data.token)
                 toast.success("User logged in");
-                navigate("/vendorJobs")
+                navigate("/user-dashboard")
             }
 
         } catch (error) {
@@ -38,7 +38,7 @@ export default function VendorLogin() {
         <div className="min-h-screen flex items-center justify-center bg-gray-100">
             <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
                 <h1 className="text-2xl font-bold mb-6 text-center">
-                    Vendor Login
+                    User Login
                 </h1>
 
                 <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
@@ -88,7 +88,7 @@ export default function VendorLogin() {
 
                 <p className="text-sm text-gray-500 mt-4 text-center">
                     Don’t have an account?{" "}
-                    <Link to="/" className="text-blue-500 hover:underline">
+                    <Link to="/register" className="text-blue-500 hover:underline">
                         Register
                     </Link>
                 </p>

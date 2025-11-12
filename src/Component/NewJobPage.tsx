@@ -70,20 +70,31 @@ export default function NewJobPage() {
 
   // fetch job items (keeps dropdown in sync with DB updates at page load)
   useEffect(() => {
-    (async () => {
-      try {
-        setLoadingItems(true);
-        setItemsError(null);
-        const res = await axios.get<JobItem[]>(`${API_BASE}/job-item`); // adjust if your route differs
-        // filter only active
-        setItems((res.data || []).filter((i) => i.is_active));
-      } catch (e: any) {
-        setItemsError(e?.response?.data?.message || e?.message || "Failed to load job items");
-      } finally {
-        setLoadingItems(false);
-      }
-    })();
-  }, []);
+  (async () => {
+    try {
+      setLoadingItems(true);
+      setItemsError(null);
+
+      const res = await axios.get(`${API_BASE}/api/job-item`);
+      const raw = Array.isArray((res as any).data) ? (res as any).data : ((res as any).data?.data ?? (res as any).data?.items ?? []);
+      const normalized = (raw || []).map((r: any) => ({
+        id: Number(r.id),
+        name: r.name ?? r.title ?? "",
+        slug: r.slug ?? (r.name || "").toLowerCase().replace(/\s+/g, "-"),
+        kind: /sub.?category/i.test(r.kind) ? "sub-category" : "category",
+        is_active: r.is_active ?? r.active ?? (r.status === "active" || r.status === true),
+        parentId: r.parentId ?? r.parent_id ?? r.parent ?? null,
+      }));
+
+    setItems(normalized.filter((i: JobItem) => i.name));
+    } catch (e: any) {
+      setItemsError(e?.response?.data?.message || e?.message || "Failed to load job items");
+    } finally {
+      setLoadingItems(false);
+    }
+  })();
+}, []);
+
 
   const categories = useMemo(
     () => items.filter((i) => i.kind === "category"),
@@ -138,14 +149,14 @@ export default function NewJobPage() {
       if (values.scheduled_date) payload.scheduled_date = values.scheduled_date;
       if (values.scheduled_time) payload.scheduled_time = values.scheduled_time;
 
-      await axios.post(`${API_BASE}/createJob`, payload, {
+      await axios.post(`${API_BASE}/api/createJob`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       reset();
       setSelectedCategoryId("");
       setSelectedSubcatId("");
-      navigate("/dashboard");
+      navigate("/user-dashboard");
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || "Failed to create job";
       setServerError(msg);

@@ -33,7 +33,7 @@ export default function VendorRegister() {
 
             if(response.status === 200){
                 toast.success("Vendor registered successfully")
-                navigate("/")
+                navigate("/vendor-login")
             }
 
         } catch (error: any) {

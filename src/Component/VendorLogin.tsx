@@ -27,7 +27,7 @@ export default function VendorLogin() {
             if (response.status === 200) {
                 localStorage.setItem("token", response.data.data.token)
                 toast.success("User logged in");
-                navigate("/vendorJobs")
+                navigate("/vendor-jobs")
             }
 
         } catch (error) {

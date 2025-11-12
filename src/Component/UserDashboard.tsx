@@ -8,12 +8,15 @@ const API_BASE_DASH = (import.meta as any).env?.VITE_API_URL || "http://localhos
 // Define the shape of a job as returned by your backend
 interface UserJob {
   jobId: number;
-  jobName: string;      // e.g., category or type of job
+  jobName?: string;
   details: string;      // description provided by the user
   location: string;     // city/area
+  status?: string;      // optional: open | assigned | in_progress | completed | cancelled
   schedule_date: string | null; // optional
   schedule_time: string | null; // optional
-  status?: string;      // optional: open | assigned | in_progress | completed | cancelled
+  jobItemId: number;   // reference to job item/type
+  categryName: string;        // e.g., Plumbing, Electrical
+  subCategoryName: string;      // e.g., category or type of job
   createdAt?: string;   // optional: for sorting/display
 }
 
@@ -27,45 +30,66 @@ export function UserDashboard() {
 
   // Fetch user's own jobs
   const fetchMyJobs = async () => {
-    setLoading(true);
-    setError(null);
+  setLoading(true);
+  setError(null);
 
-    try {
-      // 1) Read JWT from localStorage
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setLoading(false);
-        setError("You are not logged in. Please log in to view your jobs.");
-        return;
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setLoading(false);
+      setError("You are not logged in. Please log in to view your jobs.");
+      return;
+    }
+
+    const url = `${API_BASE_DASH}/api/viewJob?page=1&pageSize=10&status=open&sort=newest`;
+    const res = await axios.get<any>(url, { headers: { Authorization: `Bearer ${token}` } });
+
+    // Accept either array or { data: [...] }
+    const raw = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+
+    // 🔧 NORMALIZE -> shape the data to what the table expects
+    const normalized: UserJob[] = (raw || []).map((r: any) => {
+      // Try several keys for robustness
+      const jobId = r.jobId ?? r.id ?? r.job_id;
+
+      // Try to get the job name from related job_item if API includes it
+      const jobName =
+        r.jobName ??
+        r.job_type ??
+        r.job_item?.name ??
+        r.jobitem?.name ??
+        r.category ??
+        "";
+
+      // Normalize time: if you get an ISO string, extract HH:mm
+      let schedule_time = r.schedule_time ?? r.scheduled_time ?? null;
+      if (schedule_time && typeof schedule_time === "string" && schedule_time.includes("T")) {
+        schedule_time = schedule_time.substring(11, 16);
       }
-
-
-      // 2) Build required query params (your backend needs them; otherwise 400)
-// If your API later adds server-side defaults, you can remove these.
-const params = new URLSearchParams({
-page: "1",
-pageSize: "10",
-status: "open",
-sort: "newest",
-});
-
-      // 2) Make the API call
-      //    Adjust the URL to your actual endpoint (e.g., "/api/user/jobs" or "/api/customer/jobs")
-      const res = await axios.get<{ data: UserJob[] }>(`${API_BASE_DASH}/api/viewJob?page=1&pageSize=10&status=open&sort=newest`, {
-        headers: { Authorization: `Bearer ${token}` },
+  return {
+    jobId: jobId ?? 0,
+    jobName: jobName ?? "",
+    details: r.details ?? "",
+    location: r.location ?? r.city ?? "",
+    status: r.status ?? "open",
+    schedule_date: r.schedule_date ?? r.scheduled_date ?? null,
+    schedule_time,
+    jobItemId: r.jobItemId ?? r.job_item_id ?? r.jobitem?.id ?? 0,
+    categryName: r.categryName ?? r.categoryName ?? r.category ?? r.job_item?.category ?? "",
+    subCategoryName: r.subCategoryName ?? r.sub_category ?? r.subCategory ?? "",
+    createdAt: r.createdAt ?? r.created_at ?? null,
+  } as UserJob;
       });
 
-      // 3) Update local state
-      //    Assuming the response shape is { data: [...] }
-      const list: UserJob[] = res.data?.data ?? [];
-      setJobs(Array.isArray(list) ? list : []);
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || "Failed to fetch your jobs";
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setJobs(normalized);
+  } catch (err: any) {
+    const msg = err?.response?.data?.message || err?.message || "Failed to fetch your jobs";
+    setError(msg);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // On mount, pull the list
   useEffect(() => {
@@ -124,7 +148,7 @@ sort: "newest",
                 <th className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">Job Type</th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide text-left">Details</th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">Location</th>
-                <th className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">Schedule</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">Date & Time</th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">Status</th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">Vendor</th>
               </tr>
@@ -135,7 +159,7 @@ sort: "newest",
                 return (
                   <tr key={item.jobId} className="hover:bg-gray-50">
                     <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{index + 1}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{item.jobName}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{item.subCategoryName}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800 text-left max-w-[28rem] truncate">{item.details}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800 text-center">{item.location}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center">{schedule || "—"}</td>
@@ -154,12 +178,12 @@ sort: "newest",
                           View
                         </button>
                         {/* Edit job — route to edit page */}
-                        <button
+                        {/* <button
                           onClick={() => navigate(`/jobs/${item.jobId}/edit`)}
                           className="rounded-md bg-amber-500 px-3 py-1.5 text-white hover:bg-amber-600"
                         >
                           Edit
-                        </button>
+                        </button> */}
                       </div>
                     </td>
                   </tr>

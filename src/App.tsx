@@ -19,7 +19,7 @@ export default function App(){
 					<Route path="/vendor-login" element={<VendorLogin/>}/>
                     <Route element={<ProtectedRoutes/>}>
 					    <Route path="/" element={<Home/>} />
-                        <Route path="/vendorJobs" element={<JobListing/>}/>
+                        <Route path="/vendor-jobs" element={<JobListing/>}/>
 						<Route path="/user-dashboard" element={<UserDashboard/>} />
 						<Route path="/create-job" element={<NewJobPage />} />
                     </Route>

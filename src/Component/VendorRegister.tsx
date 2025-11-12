@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -18,6 +19,7 @@ interface RegisterFormInputs {
 export default function VendorRegister() {
     const { register, handleSubmit, formState: { errors }} = useForm<RegisterFormInputs>();
     const navigate = useNavigate()
+    const [showPassword, setShowPassword] = useState(false)
 
     const onSubmit = async (formData: RegisterFormInputs) => {
 
@@ -31,7 +33,7 @@ export default function VendorRegister() {
 
             if(response.status === 200){
                 toast.success("Vendor registered successfully")
-                navigate("/")
+                navigate("/vendor-login")
             }
 
         } catch (error: any) {
@@ -120,7 +122,7 @@ export default function VendorRegister() {
                     </div>
 
                     {/* Password */}
-                    <div>
+                    <div className="relative">
                         <label
                             htmlFor="password"
                             className="block text-gray-700 font-medium mb-1"
@@ -128,7 +130,7 @@ export default function VendorRegister() {
                             Enter password
                         </label>
                         <input
-                            type="text"
+                            type={showPassword ? "text" : "password"}
                             id="password"
                             className="w-full ps-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
                             placeholder="Create password"
@@ -140,6 +142,7 @@ export default function VendorRegister() {
                                 }
                             })}
                         />
+                        <span className="absolute right-3 top-2.5 text-sm text-blue-600 cursor-pointer select-none" onClick={()=>setShowPassword(!showPassword)}>{showPassword ? "Hide" : "Show"}</span>
                         {errors.password && <p className="text-red-500 text-sm ps-2 py-2">{errors.password.message}</p>}
                     </div>
 

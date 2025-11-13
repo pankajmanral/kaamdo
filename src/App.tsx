@@ -9,6 +9,8 @@ import UserRegister from "./Component/UserRegister";
 import UserLogin from "./Component/UserLogin";
 import { UserDashboard } from "./Component/UserDashboard";
 import NewJobPage from "./Component/NewJobPage";
+import JobBidsPage from "./Component/JobBidsPage";
+
 
 export default function App(){
 	return(
@@ -23,11 +25,14 @@ export default function App(){
 						<Route path="/user-dashboard" element={<UserDashboard/>} />
 						<Route path="/create-job" element={<NewJobPage />} />
 						<Route path="/view-bids" element={<JobListing/>} />
+						<Route path="/jobs/:jobId/bids" element={<JobBidsPage />} />
                     </Route>
 					<Route path="/login" element={<UserLogin/>} />
 					<Route path="/register" element={<UserRegister/>} />
 				</Routes>
 			</Router>
+
+			
 
             <ToastContainer 
                 position="top-center"

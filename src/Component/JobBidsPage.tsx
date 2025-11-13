@@ -76,7 +76,7 @@ export default function JobBidsPage() {
   if (loading) return <div className="p-6">Loading bids…</div>;
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-4">
+    <div className="w-full mx-auto p-6 space-y-4">
       <h1 className="text-2xl font-semibold">Bids for Job #{jobId}</h1>
 
       {bids.length === 0 && <div className="text-gray-500">No bids yet.</div>}

@@ -110,6 +110,9 @@ export default function JobListing() {
                                             <th className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-gray-600 uppercase tracking-wide text-left">
                                                 Location
                                             </th>
+                                            <th className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-gray-600 uppercase tracking-wide text-left">
+                                                Date
+                                            </th>
                                             <th className="px-3 sm:px-4 py-2 sm:py-3"></th>
                                         </tr>
                                     </thead>
@@ -130,6 +133,9 @@ export default function JobListing() {
                                                 </td>
                                                 <td className="px-3 sm:px-4 py-2 sm:py-3 text-[11px] sm:text-sm text-gray-900 text-left">
                                                     {item.location}
+                                                </td>
+                                                <td className="px-3 sm:px-4 py-2 sm:py-3 text-[11px] sm:text-sm text-gray-900 text-left">
+                                                    {item.schedule_date}
                                                 </td>
                                                 <td className="px-3 sm:px-4 py-2 sm:py-3 text-sm text-gray-700">
                                                     <button className="min-w-[80px] sm:min-w-[100px] bg-blue-500 text-white py-1.5 sm:py-2 rounded-md hover:bg-blue-600 transition-colors" onClick={()=>{
@@ -162,6 +168,12 @@ export default function JobListing() {
                                         </p>
                                         <p className="text-sm text-gray-700 mb-3">
                                             Details: <span className="font-normal">{item.details}</span>
+                                        </p>
+                                        <p className="text-sm text-gray-700 mb-3">
+                                            Location: <span className="font-normal">{item.location}</span>
+                                        </p>
+                                        <p className="text-sm text-gray-700 mb-3">
+                                            Date: <span className="font-normal">{item.schedule_date}</span>
                                         </p>
                                         <div className="flex justify-end">
                                             <button className="bg-blue-500 text-white px-3 py-1.5 rounded-md text-sm hover:bg-blue-600 transition" onClick={()=>{

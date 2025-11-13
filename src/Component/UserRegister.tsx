@@ -28,7 +28,7 @@ export default function UserRegister() {
 
             if(response.status === 200){
                 toast.success("Vendor registered successfully")
-                navigate("/")
+                navigate("/login")
             }
 
         } catch (error: any) {
@@ -41,7 +41,7 @@ export default function UserRegister() {
         <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
             <div className="bg-white my-10 py-2 px-8 rounded-lg shadow-md w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl">
                 <h1 className="text-2xl font-bold mb-4 text-center">
-                    Vendor Register
+                    User Register
                 </h1>
 
                 <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>

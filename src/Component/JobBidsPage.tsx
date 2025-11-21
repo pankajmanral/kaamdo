@@ -48,18 +48,19 @@ export default function JobBidsPage() {
     fetchBids();
   }, [fetchBids]);
 
-  const accept = async (bidId: number) => {
-    setBusyId(bidId);
-    try {
-      await axios.post(`${API_BASE}/bids/${bidId}/accept`, null, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      // optimistic refetch
-      await fetchBids();
-    } finally {
-      setBusyId(null);
-    }
-  };
+const accept = async (bidId: number) => {
+  setBusyId(bidId);
+  try {
+    await axios.post(`${API_BASE}/bids/${bidId}/accept`, null, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    // optimistic refetch
+    await fetchBids();
+  } catch (err: any) {
+    console.log(err.response?.data);
+    setBusyId(null);
+  }
+};
 
   const reject = async (bidId: number) => {
     setBusyId(bidId);

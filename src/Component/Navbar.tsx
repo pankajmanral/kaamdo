@@ -19,7 +19,7 @@ const Navbar = () => {
             {/* Navbar */}
             <nav className="flex justify-between items-center px-6 py-4 bg-blue-500 hover:bg-blue-600 transition-color duration-500 text-white">
                 {/* Logo */}
-                <div className="text-2xl font-bold cursor-pointer">MyLogo</div>
+                <div className="text-2xl font-bold cursor-pointer">KaamDo</div>
 
                 {/* Desktop Links */}
                 <div className="hidden md:flex gap-6">

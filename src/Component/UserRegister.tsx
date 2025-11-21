@@ -26,7 +26,7 @@ export default function UserRegister() {
                 }
             })
 
-            if(response.status === 200){
+            if(response.status === 201){
                 toast.success("Vendor registered successfully")
                 navigate("/login")
             }

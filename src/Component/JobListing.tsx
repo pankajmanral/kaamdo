@@ -1,4 +1,4 @@
-import axios from "axios"
+import axios, { all } from "axios"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -25,6 +25,7 @@ export default function JobListing() {
     const [showModal, setShowModal] = useState(false)
     const [selectedJobId, setSelectedJobId] = useState<number | null>(null)
     const {register, handleSubmit, formState: {errors}} = useForm<BidData>()
+    const [selectedCity, setSelectedCity] = useState("")
 
     const onSubmit = async function(formData: BidData){
         try {
@@ -59,7 +60,7 @@ export default function JobListing() {
         }
     }
 
-    const getData = async () => {
+    const getData = async ( city = "") => {
 
         // get the authentication token from the localstorage 
         const token = localStorage.getItem("token")
@@ -67,6 +68,9 @@ export default function JobListing() {
         const response: any = await axios.get("http://localhost:4000/api/jobListing", {
             headers: {
                 Authorization: `Bearer ${token}`
+            },
+            params : {
+                city
             }
         })
 
@@ -83,6 +87,23 @@ export default function JobListing() {
         <>
             <div className="w-full">
 
+                <div className="px-6 py-4 flex justify-end bg-blue-300">
+                    <div className="flex justify-between px-3">
+                        <p>Filter by <span className="font-bold">city :</span></p>
+                        <select name="" id="" className="bg-blue-300 font-bold" 
+                            value={selectedCity} 
+                            onChange={(e)=>{
+                                setSelectedCity(e.target.value)
+                                getData(e.target.value)
+                            }}
+                            >
+                                <option value="all">All</option>
+                                <option value="Mumbai">Mumbai</option>
+                                <option value="pune">Pune</option>
+                                <option value="goa">Goa</option>
+                        </select>
+                    </div>
+                </div>
 
                 {/* conditional rendering */}
                 {
@@ -91,6 +112,7 @@ export default function JobListing() {
                         <>
                             <h1 className="text-center d-block md:font-bold font-normal font-sans py-5 md:text-3xl text-xl transition-all duration-500">Job listing view for vendors</h1>
                     
+
                             <div className="hidden sm:block overflow-x-auto bg-white rounded-lg shadow-sm">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
@@ -259,7 +281,6 @@ export default function JobListing() {
                 }
 
             </div>
-
         </>
     )
 }

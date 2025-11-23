@@ -92,7 +92,7 @@ export default function VendorLogin() {
 
                 <p className="text-sm text-gray-500 mt-4 text-center">
                     Don’t have an account?{" "}
-                    <Link to="/" className="text-blue-500 hover:underline">
+                    <Link to="/vendor-register" className="text-blue-500 hover:underline">
                         Register
                     </Link>
                 </p>

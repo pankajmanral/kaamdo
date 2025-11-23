@@ -5,7 +5,7 @@ export default function ProtectedRoutes(){
     // get the token from localstorage 
     const token = localStorage.getItem("token")
     if(!token){
-        return <Navigate to={"/login"} replace/>
+        return <Navigate to={"/"} replace/>
     }
 
     return <Outlet />

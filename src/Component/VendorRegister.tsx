@@ -315,7 +315,7 @@ export default function VendorRegister() {
 
                 <p className="text-sm text-gray-500 mt-4 text-center">
                     Already have an account?{" "}
-                    <Link to="/login" className="text-blue-500 hover:underline">
+                    <Link to="/vendor-login" className="text-blue-500 hover:underline">
                         Login
                     </Link>
                 </p>

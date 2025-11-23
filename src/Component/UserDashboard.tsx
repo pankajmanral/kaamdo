@@ -172,7 +172,7 @@ export function UserDashboard() {
                       <div className="flex items-center justify-center gap-2">
                         {/* View details action — route to a details page if available */}
                         <button
-                          onClick={() => navigate(`/jobs/${item.jobId}`)}
+                          onClick={() => navigate(`/jobs/${item.jobId}/bids`)}
                           className="rounded-md bg-blue-500 px-3 py-1.5 text-white hover:bg-blue-600"
                         >
                           View

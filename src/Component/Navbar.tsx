@@ -23,15 +23,6 @@ const Navbar = () => {
 
                 {/* Desktop Links */}
                 <div className="hidden md:flex gap-6">
-                    <a href="#" className="hover:text-gray-300 transition">
-                        Link 1
-                    </a>
-                    <a href="#" className="hover:text-gray-300 transition">
-                        Link 2
-                    </a>
-                    <Link to="/assigned-jobs" className="hover:text-gray-300 transition">
-                        Assigned Job
-                    </Link>
                     <button onClick={()=>logout()}>
                         Logout
                     </button>

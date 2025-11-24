@@ -1,24 +1,24 @@
 import axios from "axios"
 import { useEffect, useState } from "react"
-import { StringFormatParams } from "zod/v4/core"
 
-interface AssignedJob{
-    jobName : string,
-    postedBy : string,
-    customerPhoneNumber : number,
-    schedule_date : string,
+interface AssignedJob {
+    jobId: number,
+    jobName: string,
+    postedBy: string,
+    customerPhoneNumber: number,
+    schedule_date: string,
     schedule_time: string,
-    jobDetails : string,
-    location : string
+    jobDetails: string,
+    location: string
 }
 
 export default function AssignedJobs() {
 
     const [data, setData] = useState<AssignedJob[]>([])
- 
+
     const getData = async () => {
         const token = localStorage.getItem("token")
-        
+
         const response: any = await axios.get("http://localhost:4000/api/assigned-jobs", {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -30,9 +30,36 @@ export default function AssignedJobs() {
 
     }
 
-    useEffect(()=>{
+    async function changeStatus(jobId: number) {
+
+        try {
+
+            const token = localStorage.getItem("token")
+
+            const url = await axios.put(`http://localhost:4000/api/completeJob/${jobId}`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            )
+
+            alert("Job status updated")
+            console.log(url.data)
+
+            getData()
+
+
+        } catch (error) {
+            console.log(error)
+        }
+
+    }
+
+    useEffect(() => {
         getData()
-    },[])
+    }, [])
 
     return (
         <>
@@ -95,7 +122,9 @@ export default function AssignedJobs() {
                                     {item.schedule_time}
                                 </td>
                                 <td className="px-3 sm:px-4 py-2 sm:py-3 text-sm text-gray-700">
-                                    <button className="min-w-[80px] sm:min-w-[100px] bg-blue-500 text-white py-1.5 sm:py-2 rounded-md hover:bg-blue-600 transition-colors">
+                                    <button className="min-w-[80px] sm:min-w-[100px] bg-blue-500 text-white py-1.5 sm:py-2 rounded-md hover:bg-blue-600 transition-colors"
+                                        onClick={() => changeStatus(item.jobId)}
+                                    >
                                         Completed
                                     </button>
                                 </td>

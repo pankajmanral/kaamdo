@@ -14,6 +14,7 @@ import MainPage from "./Component/MainPage";
 import WelcomePage from "./Component/WelcomePage";
 import AssignedJobs from "./Component/AssignedJobs";
 import ViewJobs from "./Component/ViewJobs";
+import JobHistory from "./Component/JobHistory";
 
 
 
@@ -34,6 +35,7 @@ export default function App(){
                             <Route path="/jobs/:jobId/bids" element={<JobBidsPage />} />
                             <Route path="/assigned-jobs" element={<AssignedJobs/>}/>
                             <Route path="/view-jobs" element={<ViewJobs/>} />
+                            <Route path="/job-history" element={<JobHistory/>} />
                         </Route>
                     </Route>
 					<Route path="/login" element={<UserLogin/>} />

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import unavailableImage from "../../src/assets/images/temporary_unavailable.jpg"
-import { Link } from "react-router-dom";
+import VendorNav from "./VendorNav";
 
 interface Job {
     jobId: number,
@@ -89,16 +89,9 @@ export default function JobListing() {
         <>
             <div className="w-full">
 
-                <div className="px-6 py-4 flex justify-between bg-white">
-                    <div className="flex items-center gap-3">
-                        <Link to="/assigned-jobs" className="bg-black text-white rounded-lg px-4 py-1 hover:bg-gray-300 hover:text-black transition-all duration-3  00">
-                            Assigned Job
-                        </Link>
-                        <Link to="/job-history" className="bg-black text-white rounded-lg px-4 py-1 hover:bg-gray-300 hover:text-black transition-all duration-3  00">
-                            Job History
-                        </Link>
-                    </div>
-                    <div className="flex justify-between px-3">
+                <div className="px-6 py-4 flex md:flex-row flex-col justify-between">
+                    <VendorNav/>
+                    <div className="flex md:justify-between sm:justify-normal items-center px-0 md:px-3">
                         <p>Filter by <span className="font-bold">city :</span></p>
                         <select name="" id="" className="bg-white font-bold"
                             value={selectedCity}
@@ -108,7 +101,7 @@ export default function JobListing() {
                             }}
                         >
                             <option value="all">All</option>
-                            <option value="Mumbai">Mumbai</option>
+                            <option value="mumbai">Mumbai</option>
                             <option value="pune">Pune</option>
                             <option value="goa">Goa</option>
                         </select>
@@ -278,12 +271,7 @@ export default function JobListing() {
                                 )}
                             </>
                         ) :
-                        <div className="relative h-screen w-full flex justify-center items-center">
-
-                            {/* Transparent overlay */}
-                            <div className="absolute inset-0 bg-white bg-center bg-no-repeat opacity-5" style={{ backgroundImage: `url(${unavailableImage})` }}></div>
-
-                            {/* Text content */}
+                        <div className="relative w-full flex justify-center items-center mt-20">
                             <h1 className="relative font-light font-sans md:text-2xl text-md text-black text-center">
                                 No jobs to display at the moment...
                             </h1>

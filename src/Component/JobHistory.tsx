@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom"
 import unavailableImage from "../../src/assets/images/temporary_unavailable.jpg"
 import axios from "axios"
 import { useEffect, useState } from "react"
+import VendorNav from "./VendorNav"
 
 interface CompletedJobData {
     jobName: string,
@@ -49,14 +50,7 @@ export default function JobHistory(){
             <div className="w-full">
 
                 <div className="px-6 py-4 flex justify-between bg-white">
-                    <div className="flex items-center gap-3">
-                        <Link to="/assigned-jobs" className="bg-black text-white rounded-lg px-4 py-1 hover:bg-gray-300 hover:text-black transition-all duration-3  00">
-                            Assigned Job
-                        </Link>
-                        <Link to="/job-history" className="bg-black text-white rounded-lg px-4 py-1 hover:bg-gray-300 hover:text-black transition-all duration-3  00">
-                            Job History
-                        </Link>
-                    </div>
+                    <VendorNav/>
                 </div>
 
                 {/* conditional rendering */}
@@ -129,12 +123,7 @@ export default function JobHistory(){
                             </div>
                         </>
                     ) : 
-                        <div className="relative h-screen w-full flex justify-center items-center">
-                        
-                            {/* Transparent overlay */}
-                            <div className="absolute inset-0 bg-white bg-center bg-no-repeat opacity-5"  style={{ backgroundImage: `url(${unavailableImage})` }}></div>
-
-                            {/* Text content */}
+                        <div className="relative w-full flex justify-center items-center mt-20">
                             <h1 className="relative font-light font-sans md:text-2xl text-md text-black text-center">
                                 No jobs to display at the moment...
                             </h1>

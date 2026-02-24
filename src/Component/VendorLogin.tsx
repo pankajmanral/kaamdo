@@ -1,102 +1,155 @@
 import axios from "axios";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
-interface LoginFormInput {
-    phone: string,
-    password: string
-}
+import Input from "../components/Input";
+import Button from "../components/Button";
 
 export default function VendorLogin() {
+  const [formData, setFormData] = useState({ phone: "", password: "" });
+  const navigate = useNavigate();
 
-    const { register, handleSubmit, formState: { errors } } = useForm<LoginFormInput>();
-    const navigate = useNavigate()
-    const [showPassword, setShowPassword] = useState(false)
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-    const onSubmit = async (formData: LoginFormInput) => {
-        try {
-
-            const response: any = await axios.post("http://localhost:4000/api/vendorLogin", formData, {
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            })
-
-            if (response.status === 200) {
-                localStorage.setItem("token", response.data.data.token)
-                toast.success("User logged in");
-                navigate("/vendorJobs")
-            }
-
-        } catch (error) {
-            toast.error("Invalid creadentials")
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response: any = await axios.post("http://localhost:4000/api/vendorLogin", formData, {
+        headers: {
+          "Content-Type": "application/json"
         }
+      });
 
+      if (response.status === 200) {
+        localStorage.setItem("token", response.data.data.token);
+        toast.success("Vendor logged in");
+        navigate("/vendor-jobs");
+      }
+    } catch (error) {
+      toast.error("Invalid credentials");
     }
+  };
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                <h1 className="text-2xl font-bold mb-6 text-center">
-                    Vendor Login
-                </h1>
-
-                <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
-                    {/* Phone */}
-                    <div className="mt-4">
-                        <label htmlFor="phone" className="block text-gray-700 font-medium mb-1" >
-                            Phone
-                        </label>
-                        <input type="text" id="phone" className="w-full ps-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Enter your phone number"
-                            {
-                            ...register("phone", {
-                                required: "Phone number is required",
-                                pattern: {
-                                    value: /^[0-9]{10}$/,
-                                    message: "Phone number should be 10 digits long"
-                                }
-                            })}
-                        />
-                        {errors.phone ? <p className={`text-sm ps-2 h-4 my-1 ${errors.phone.message ? "text-red-500" : "invisible"}`}>{errors.phone.message}</p> : <p className="text-sm ps-2 h-4 my-1 invisible">This is for the error</p>}
-                    </div>
-
-                    {/* Password */}
-                    <div className="mt-4 relative">
-                        <label htmlFor="password" className="block text-gray-700 font-medium mb-1">
-                            Password
-                        </label>
-                        <input type={showPassword ? "text" : "password"}
-                        id="password" className="w-full ps-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Enter your password"
-                            {
-                            ...register("password", {
-                                required: "Password is required",
-                                pattern: {
-                                    value: /^[a-zA-Z0-9]{8,}$/,
-                                    message: "Password must be atleast 8 characters long",
-                                }
-                            })
-                            }
-                        />
-                        <span className="absolute right-3 top-2.5 text-sm text-blue-600 cursor-pointer select-none" onClick={()=> setShowPassword(!showPassword) }>{showPassword ? "Hide" : "Show"}</span>
-                        {errors.password ? <p className={`text-sm ps-2 h-4 my-1 ${errors.password.message ? "text-red-500" : "invisible"}`}>{errors.password.message}</p> : <p className="text-sm ps-2 h-4 my-1 invisible">This is for the error</p>}
-
-                    </div>
-
-                    {/* Submit Button */}
-                    <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors mt-10">
-                        Login
-                    </button>
-                </form>
-
-                <p className="text-sm text-gray-500 mt-4 text-center">
-                    Don’t have an account?{" "}
-                    <Link to="/" className="text-blue-500 hover:underline">
-                        Register
-                    </Link>
-                </p>
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Left Side - Form */}
+          <div className="bg-white rounded-lg shadow-lg p-8 max-h-[90vh] overflow-y-auto">
+            <div className="mb-8 sticky top-0 bg-white pb-4 -mx-8 px-8 border-b z-10">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                Welcome Back
+              </h2>
+              <p className="text-gray-600">
+                Sign in to access vendor dashboard
+              </p>
             </div>
+
+            <form className="space-y-5" onSubmit={onSubmit}>
+              <Input
+                label="Phone Number"
+                type="text"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="Enter your phone number"
+                required
+              />
+
+              <Input
+                label="Password"
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+                required
+              />
+
+              <div className="pt-2">
+                <Button type="submit" className="w-full" size="lg">
+                  Sign In
+                </Button>
+              </div>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                New vendor?{" "}
+                <Link to="/vendor-register" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                  Register here
+                </Link>
+              </p>
+            </div>
+          </div>
+
+          {/* Right Side - Features */}
+          <div className="hidden lg:flex flex-col items-center justify-center h-[90vh]">
+            <h1 className="text-5xl font-bold text-blue-600 mb-8 text-center">KaamDo</h1>
+            <p className="text-xl text-gray-600 mb-8 text-center">
+              Grow your service business
+            </p>
+
+            <div className="space-y-6 max-w-sm mx-auto">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <div className="flex items-center justify-center h-10 w-10 rounded-full bg-blue-100">
+                    <svg className="h-6 w-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Earn Money
+                  </h3>
+                  <p className="mt-1 text-gray-600">
+                    Get paid for your skills and services
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <div className="flex items-center justify-center h-10 w-10 rounded-full bg-blue-100">
+                    <svg className="h-6 w-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Choose Your Schedule
+                  </h3>
+                  <p className="mt-1 text-gray-600">
+                    Work at your own pace and availability
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <div className="flex items-center justify-center h-10 w-10 rounded-full bg-blue-100">
+                    <svg className="h-6 w-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Build Your Profile
+                  </h3>
+                  <p className="mt-1 text-gray-600">
+                    Showcase your expertise and attract clients
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 }

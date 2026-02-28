@@ -1,0 +1,2 @@
+imp syntax for useState 
+const [data, setData] = useState<CompletedJobData[]>([])

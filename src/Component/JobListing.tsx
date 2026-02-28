@@ -49,7 +49,7 @@ export default function JobListing() {
             setShowModal(false)
             setBidData({ amount: "", message: "" })
         } catch (error) {
-            console.log("Error placing bid",error)
+            console.log("Error placing bid", error)
         }
     }
 
@@ -58,6 +58,9 @@ export default function JobListing() {
         const response: any = await axios.get("http://localhost:4000/api/jobListing", {
             headers: {
                 Authorization: `Bearer ${token}`
+            },
+            params: {
+                city
             }
         })
         setData(response.data.data)

@@ -1,9 +1,10 @@
-import axios from "axios"
 import { useEffect, useState } from "react"
 import Modal from "../components/Modal"
 import Input from "../components/Input"
 import Textarea from "../components/Textarea"
 import Button from "../components/Button"
+import { useForm } from "react-hook-form"
+import { toast } from "react-toastify"
 
 interface Job {
     jobId: number,
@@ -15,144 +16,152 @@ interface Job {
     schedule_time: string | null
 }
 
+interface JobBidData {
+    amount: number,
+    message: string
+}
+
+// format time
+const formatTime = (time: string | null) => {
+    if (!time) return null;
+    try {
+        const parts = time.split(':');
+        if (parts.length < 2) return time;
+        const h = parseInt(parts[0], 10);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const formattedHours = h % 12 || 12;
+        return `${formattedHours}:${parts[1]} ${ampm}`;
+    } catch {
+        return time;
+    }
+}
+
 export default function JobListing() {
     const [data, setData] = useState<Job[]>([]);
     const [showModal, setShowModal] = useState(false)
     const [selectedJobId, setSelectedJobId] = useState<number | null>(null)
-    const [bidData, setBidData] = useState({ amount: "", message: "" })
-
-    const handleBidChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setBidData({ ...bidData, [e.target.name]: e.target.value })
-    }
-
-    const onSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if(!selectedJobId){
-            alert("No job selected")
-            return;
+    const { register, handleSubmit, reset } = useForm<JobBidData>({
+        defaultValues: {
+            amount: undefined,
+            message: ""
         }
-        try {
-            const token = localStorage.getItem("token")
-            const response = await axios.post(`http://localhost:4000/api/placeBid/${selectedJobId}`,
-                {
-                    amount: bidData.amount,
-                    message: bidData.message
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json"
-                    }
-                }
-            );
-            alert("Bid placed successfully")
-            setShowModal(false)
-            setBidData({ amount: "", message: "" })
-        } catch (error) {
-            console.log("Error placing bid", error)
-        }
-    }
+    })
 
-    const getData = async () => {
+    const bidJob = async (data: JobBidData) => {
+
         const token = localStorage.getItem("token")
-        const response: any = await axios.get("http://localhost:4000/api/jobListing", {
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
-            params: {
-                city
+
+        try {
+            const { amount, message } = data
+            const payload = {
+                amount: Number(amount),
+                message: message
             }
-        })
-        setData(response.data.data)
+            const response = await fetch(`http://localhost:4000/api/placeBid/${selectedJobId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            })
+            const result = await response.json()
+            if (!response.ok) {
+                throw new Error(result.message)
+            }
+            toast.success(result.message)
+            setShowModal(false)
+            reset()
+            console.log(result)
+        } catch (error: any) {
+            toast.error(error.message)
+            reset()
+        } finally {
+            setShowModal(false)
+        }
     }
 
+    // useEffect to fetch all the job listings
     useEffect(() => {
+        const getData = async () => {
+            const token = localStorage.getItem("token")
+            const response = await fetch("http://localhost:4000/api/jobListing", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application-json",
+                    "Authorization": `Bearer ${token}`
+                }
+            })
+            const result = await response.json()
+            setData(result.data)
+        }
         getData()
     }, [])
 
+    // Job stats
+    const totalJobs = data.length;
+    // You can add more stats if available, e.g., open/completed jobs
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">Available Jobs</h1>
-
-            {/* Table view for medium and larger screens */}
-            <div className="hidden sm:block bg-white rounded-lg shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Sr.No
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Posted By
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Job Type
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Details
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {data.map((item, index) => (
-                                <tr key={index} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {index + 1}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {item.postedBy}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {item.jobName}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                                        {item.details}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <Button
-                                            size="sm"
-                                            onClick={()=>{
-                                                setShowModal(true)
-                                                setSelectedJobId(item.jobId)
-                                            }}
-                                        >
-                                            Bid
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900">Available Jobs</h1>
+                    <p className="text-gray-600 mt-1">Browse and bid on jobs posted by users.</p>
                 </div>
             </div>
 
-            {/* Card view for small screens */}
-            <div className="block sm:hidden space-y-4">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-600">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-gray-600 text-sm font-medium">Total Jobs</p>
+                            <p className="text-4xl font-bold text-gray-900 mt-2">{totalJobs}</p>
+                        </div>
+                        <div className="bg-blue-100 rounded-lg p-3">
+                            <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h1a1 1 0 001-1v-6a1 1 0 00-1-1h-1z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                {/* Add more stats cards here if needed */}
+            </div>
+
+            {/* Card view for all screens */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {data.map((item, index) => (
                     <div
                         key={index}
-                        className="bg-white shadow-sm rounded-lg p-6 border border-gray-100"
+                        className="bg-white shadow-sm rounded-lg p-6 border border-gray-100 flex flex-col justify-between"
                     >
-                        <p className="text-sm text-gray-500 font-semibold mb-2">
-                            #{index + 1}
-                        </p>
-                        <p className="text-lg font-medium text-gray-900 mb-1">
-                            Posted By: <span className="font-normal">{item.postedBy}</span>
-                        </p>
-                        <p className="text-sm text-gray-700 mb-1">
-                            Job Type: <span className="font-normal">{item.jobName}</span>
-                        </p>
-                        <p className="text-sm text-gray-700 mb-4">
-                            Details: <span className="font-normal">{item.details}</span>
-                        </p>
-                        <div className="flex justify-end">
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm text-gray-500 font-semibold">#{index + 1}</span>
+                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">{item.jobName}</span>
+                            </div>
+                            <p className="text-lg font-medium text-gray-900 mb-1">
+                                {item.details}
+                            </p>
+                            <p className="text-sm text-gray-700 mb-1">
+                                <span className="font-semibold">Posted By:</span> {item.postedBy}
+                            </p>
+                            <p className="text-sm text-gray-700 mb-1">
+                                <span className="font-semibold">Location:</span> {item.location}
+                            </p>
+                            <p className="text-sm text-gray-700 mb-1">
+                                <span className="font-semibold">Date:</span> {item.schedule_date || "—"}
+                            </p>
+                            <p className="text-sm text-gray-700 mb-1">
+                                <span className="font-semibold">Time:</span> {formatTime(item.schedule_time) || "—"}
+                            </p>
+                        </div>
+                        <div className="flex justify-end mt-4">
                             <Button
                                 size="sm"
-                                onClick={()=>{
+                                onClick={() => {
                                     setShowModal(true)
                                     setSelectedJobId(item.jobId)
                                 }}
@@ -164,24 +173,23 @@ export default function JobListing() {
                 ))}
             </div>
 
+            {/* Bid Modal */}
             <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Place Your Bid">
-                <form onSubmit={onSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit(bidJob)} className="space-y-4">
                     <Input
                         label="Bid Amount (₹)"
                         type="number"
-                        name="amount"
-                        value={bidData.amount}
-                        onChange={handleBidChange}
                         placeholder="Enter your bid amount"
-                        required
+                        {...register("amount", {
+                            required: true
+                        })}
                     />
                     <Textarea
                         label="Message"
-                        name="message"
-                        value={bidData.message}
-                        onChange={handleBidChange}
                         placeholder="Enter a message for the job poster"
-                        required
+                        {...register("message", {
+                            required: true
+                        })}
                     />
                     <div className="flex justify-end space-x-3">
                         <Button variant="outline" onClick={() => setShowModal(false)}>

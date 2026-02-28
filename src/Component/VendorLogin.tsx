@@ -37,7 +37,7 @@ export default function VendorLogin() {
 			toast.success(result.message)
 			localStorage.setItem("token", result.data.token)
 			localStorage.setItem("vendorName", result.data.vendor.name)
-			// navigate("/vendor-jobs")
+			navigate("/vendor-jobs")
 		} catch (error: any) {
 			toast.error(error.message)
 		}

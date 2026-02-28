@@ -42,7 +42,7 @@ export default function UserLogin() {
             <p className="text-xl text-gray-600 mb-8 text-center">
               Join us to post jobs and find services
             </p>
-            
+
             <div className="space-y-6 max-w-sm mx-auto">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
@@ -115,13 +115,14 @@ export default function UserLogin() {
               <Input
                 label="Phone Number"
                 type="text"
+                maxLength={10}
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="Enter your phone number"
                 required
               />
-              
+
               <Input
                 label="Password"
                 type="password"

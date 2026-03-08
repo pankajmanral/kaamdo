@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 type JobStatus = "open" | "assigned" | "in_progress" | "completed" | "cancelled" | "draft";
 
@@ -47,7 +48,7 @@ export default function MyJobs() {
       });
 
 
-setJobs((response.data as { data: UserJob[] }).data ?? []);
+      setJobs((response.data as { data: UserJob[] }).data ?? []);
     } catch (err) {
       console.error("Error fetching jobs:", err);
       setJobs([]);
@@ -63,47 +64,58 @@ setJobs((response.data as { data: UserJob[] }).data ?? []);
 
   const renderStatusBadge = (status: JobStatus) => {
     let base =
-      "inline-flex items-center px-2 py-1 text-[10px] sm:text-xs font-semibold rounded-full";
+      "inline-flex items-center px-3 py-1 text-xs font-bold uppercase tracking-wide rounded-full";
     let color = "";
 
     switch (status) {
       case "open":
-        color = "bg-green-100 text-green-700";
+        color = "bg-green-100 text-green-700 border border-green-200";
         break;
       case "assigned":
-        color = "bg-blue-100 text-blue-700";
+        color = "bg-blue-100 text-blue-700 border border-blue-200";
         break;
       case "in_progress":
-        color = "bg-yellow-100 text-yellow-700";
+        color = "bg-amber-100 text-amber-700 border border-amber-200";
         break;
       case "completed":
-        color = "bg-emerald-100 text-emerald-700";
+        color = "bg-emerald-100 text-emerald-700 border border-emerald-200";
         break;
       case "cancelled":
-        color = "bg-red-100 text-red-700";
+        color = "bg-red-100 text-red-700 border border-red-200";
         break;
       case "draft":
-        color = "bg-gray-100 text-gray-700";
+        color = "bg-slate-100 text-slate-700 border border-slate-200";
         break;
       default:
-        color = "bg-gray-100 text-gray-700";
+        color = "bg-slate-100 text-slate-700 border border-slate-200";
     }
 
     return <span className={`${base} ${color}`}>{status.replace("_", " ")}</span>;
   };
 
   return (
-    <>
-      {/* Filter Row */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-gray-800">My Job Listings</h2>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -z-10 animate-blob"></div>
+      <div className="absolute top-40 left-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -z-10 animate-blob animation-delay-2000"></div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs sm:text-sm text-gray-600">Filter by status:</span>
+      {/* Filter Row */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+      >
+        <div>
+          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Vendor Dashboard</h2>
+          <p className="text-slate-500 mt-1">Manage and track your job applications and assignments.</p>
+        </div>
+
+        <div className="flex items-center gap-3 bg-white/50 backdrop-blur-md p-2 rounded-xl shadow-sm border border-slate-200/60">
+          <span className="text-sm font-medium text-slate-600 pl-2">Filter status:</span>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as JobStatus | "all")}
-            className="border border-gray-300 text-xs sm:text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="border-none bg-white text-sm font-medium text-slate-800 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer"
           >
             {STATUS_LABELS.map((s) => (
               <option key={s.value} value={s.value}>
@@ -112,118 +124,140 @@ setJobs((response.data as { data: UserJob[] }).data ?? []);
             ))}
           </select>
         </div>
-      </div>
+      </motion.div>
 
       {/* Desktop Table */}
-      <div className="hidden sm:block overflow-x-auto bg-white rounded-lg shadow-sm">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="hidden sm:block overflow-hidden glass rounded-3xl shadow-sm"
+      >
         {loading ? (
-          <div className="p-4 text-center text-sm text-gray-500">Loading jobs...</div>
+          <div className="p-12 text-center">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <p className="text-slate-600 font-medium">Loading your job records...</p>
+          </div>
         ) : jobs.length === 0 ? (
-          <div className="p-4 text-center text-sm text-gray-500">
-            No jobs found for this filter.
+          <div className="p-16 text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 mb-6 shadow-inner border border-slate-200 text-4xl">
+              📁
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">No jobs found</h3>
+            <p className="text-slate-500">There are no records matching your current filter.</p>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">
-                  Sr.No
-                </th>
-                <th className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">
-                  Category
-                </th>
-                <th className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">
-                  Sub Category
-                </th>
-                <th className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-gray-600 uppercase tracking-wide text-left">
-                  Details
-                </th>
-                <th className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-gray-600 uppercase tracking-wide text-left">
-                  Location
-                </th>
-                <th className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-gray-600 uppercase tracking-wide text-left">
-                  Date
-                </th>
-                <th className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-gray-600 uppercase tracking-wide text-left">
-                  Time
-                </th>
-                <th className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-gray-600 uppercase tracking-wide text-left">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {jobs.map((job, index) => (
-                <tr key={job.id} className="hover:bg-gray-50">
-                  <td className="px-3 sm:px-4 py-2 sm:py-3 text-[11px] sm:text-sm font-medium text-gray-900 text-center">
-                    {index + 1}
-                  </td>
-                  <td className="px-3 sm:px-4 py-2 sm:py-3 text-[11px] sm:text-sm font-medium text-gray-900 text-center">
-                    {job.categoryName || "-"}
-                  </td>
-                  <td className="px-3 sm:px-4 py-2 sm:py-3 text-[11px] sm:text-sm font-medium text-gray-900 text-center">
-                    {job.subCategoryName || "-"}
-                  </td>
-                  <td className="px-3 sm:px-4 py-2 sm:py-3 text-[11px] sm:text-sm text-gray-900 text-left max-w-xs truncate">
-                    {job.details || "-"}
-                  </td>
-                  <td className="px-3 sm:px-4 py-2 sm:py-3 text-[11px] sm:text-sm text-gray-900 text-left">
-                    {job.city || "-"}
-                  </td>
-                  <td className="px-3 sm:px-4 py-2 sm:py-3 text-[11px] sm:text-sm text-gray-900 text-left">
-                    {job.scheduled_date || "-"}
-                  </td>
-                  <td className="px-3 sm:px-4 py-2 sm:py-3 text-[11px] sm:text-sm text-gray-900 text-left">
-                    {job.scheduled_time || "-"}
-                  </td>
-                  <td className="px-3 sm:px-4 py-2 sm:py-3 text-[11px] sm:text-sm text-gray-900 text-left">
-                    {renderStatusBadge(job.status)}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200/50">
+              <thead className="bg-slate-50/50 backdrop-blur-sm">
+                <tr>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">
+                    Sr.No
+                  </th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">
+                    Category Information
+                  </th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">
+                    Task Details
+                  </th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">
+                    Location & Time
+                  </th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">
+                    Status
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-200/50">
+                {jobs.map((job, index) => (
+                  <motion.tr
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: index * 0.05 }}
+                    key={job.id}
+                    className="hover:bg-slate-50/50 transition-colors"
+                  >
+                    <td className="px-6 py-5 whitespace-nowrap text-sm font-semibold text-slate-900 text-center">
+                      {index + 1}
+                    </td>
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <div className="text-sm font-bold text-slate-900">{job.subCategoryName || "-"}</div>
+                      <div className="text-xs font-medium text-slate-500 mt-0.5">{job.categoryName || "-"}</div>
+                    </td>
+                    <td className="px-6 py-5 text-sm text-slate-600 max-w-xs xl:max-w-md">
+                      <div className="line-clamp-2 leading-relaxed">{job.details || "-"}</div>
+                    </td>
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <div className="text-sm font-medium text-slate-900 flex items-center gap-1.5">
+                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        {job.city || "-"}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1.5 flex items-center gap-1.5">
+                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        {[job.scheduled_date, job.scheduled_time].filter(Boolean).join(" ") || "Flexible timing"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-5 whitespace-nowrap text-left shadow-sm">
+                      {renderStatusBadge(job.status)}
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </motion.div>
 
-      {/* (Optional) Simple mobile view – you can style later */}
-      <div className="sm:hidden space-y-3">
+      {/* Mobile view */}
+      <div className="sm:hidden space-y-4">
         {loading ? (
-          <div className="p-3 text-center text-sm text-gray-500">Loading jobs...</div>
+          <div className="glass rounded-2xl p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-3"></div>
+            <p className="text-slate-600 text-sm font-medium">Loading jobs...</p>
+          </div>
         ) : jobs.length === 0 ? (
-          <div className="p-3 text-center text-sm text-gray-500">
-            No jobs found for this filter.
+          <div className="glass rounded-2xl p-8 text-center">
+            <span className="text-3xl mb-3 block">📁</span>
+            <p className="text-slate-600 text-sm font-medium">No jobs found for this filter.</p>
           </div>
         ) : (
           jobs.map((job, index) => (
-            <div
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.05 }}
               key={job.id}
-              className="bg-white rounded-lg shadow-sm p-3 border border-gray-100"
+              className="glass rounded-2xl p-5"
             >
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xs font-medium text-gray-500">
-                  #{index + 1} • {job.categoryName}
-                </span>
+              <div className="flex justify-between items-start mb-3 border-b border-slate-200/50 pb-3">
+                <div>
+                  <span className="text-sm font-bold text-slate-900 block mb-0.5">
+                    {job.subCategoryName || job.categoryName || "Unknown Task"}
+                  </span>
+                  <span className="text-xs font-semibold text-indigo-600">#{index + 1}</span>
+                </div>
                 {renderStatusBadge(job.status)}
               </div>
-              {job.subCategoryName && (
-                <div className="text-xs text-gray-600 mb-1">
-                  Sub-category: {job.subCategoryName}
-                </div>
-              )}
-              <div className="text-xs text-gray-800 mb-1 line-clamp-2">
-                {job.details || "-"}
+
+              <div className="text-sm text-slate-600 mb-4 line-clamp-3 leading-relaxed">
+                {job.details || "No details provided."}
               </div>
-              <div className="text-[11px] text-gray-600">
-                <div>Location: {job.city || "-"}</div>
-                <div>
-                  {job.scheduled_date || "-"} {job.scheduled_time || ""}
+
+              <div className="bg-slate-50/50 rounded-xl p-3 grid grid-cols-2 gap-2 border border-slate-100">
+                <div className="text-xs">
+                  <span className="block text-slate-400 font-semibold uppercase mb-0.5">Location</span>
+                  <span className="text-slate-800 font-medium">{job.city || "Not specified"}</span>
+                </div>
+                <div className="text-xs">
+                  <span className="block text-slate-400 font-semibold uppercase mb-0.5">Timing</span>
+                  <span className="text-slate-800 font-medium">
+                    {[job.scheduled_date, job.scheduled_time].filter(Boolean).join(" ") || "Flexible"}
+                  </span>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))
         )}
       </div>
-    </>
+    </div>
   );
 }

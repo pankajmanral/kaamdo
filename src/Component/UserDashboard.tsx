@@ -8,6 +8,7 @@ import Modal from "../components/Modal";
 import Input from "../components/Input";
 import Select from "../components/Select";
 import Button from "../components/Button";
+import { motion } from "framer-motion";
 
 const API_BASE_DASH = (import.meta as any).env?.VITE_API_URL || "http://localhost:4000";
 
@@ -16,7 +17,12 @@ const emptyToUndefined = <T extends z.ZodTypeAny>(schema: T) =>
   z.preprocess((v) => (v === "" ? undefined : v), schema.optional());
 
 const CreateJobSchema = z.object({
-  jobTaskId: z.coerce.number().int().positive("Please select a sub-category"),
+  jobTaskId: z.preprocess(
+    (val) => (val === "" || val === undefined || isNaN(Number(val)) ? undefined : Number(val)),
+    z.number({
+      message: "Please select a service needed"
+    })
+  ),
   details: emptyToUndefined(
     z.string().min(3, "Please add at least 3 characters").max(5000, "Details too long")
   ),
@@ -103,7 +109,7 @@ export function UserDashboard() {
         return;
       }
 
-      const url = `${API_BASE_DASH}/api/viewJob?page=1&pageSize=10&status=open&sort=newest`;
+      const url = `${API_BASE_DASH}/api/viewJob?page=1&pageSize=50&status=all&sort=newest`;
       const res = await axios.get<any>(url, { headers: { Authorization: `Bearer ${token}` } });
 
       const raw = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
@@ -262,172 +268,182 @@ export function UserDashboard() {
     setSelectedSubcatId("");
     setServerError(null);
   };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -z-10 animate-blob"></div>
+      <div className="absolute top-20 left-0 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -z-10 animate-blob animation-delay-2000"></div>
+
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4"
+      >
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Your Jobs</h1>
-          <p className="text-gray-600 mt-1">View and manage the jobs you've posted.</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Your Jobs</h1>
+          <p className="text-slate-500 mt-1">View and manage the jobs you've posted.</p>
         </div>
         <button
           onClick={handleOpenModal}
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-white font-medium hover:bg-blue-700 transition-colors whitespace-nowrap"
+          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-white font-semibold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:bg-blue-700 hover:-translate-y-0.5 transition-all whitespace-nowrap"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           Create New Job
         </button>
-      </div>
+      </motion.div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-600">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm font-medium">Total Jobs</p>
-              <p className="text-4xl font-bold text-gray-900 mt-2">{totalJobs}</p>
+        {[
+          { label: "Total Jobs", value: totalJobs, icon: "M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h1a1 1 0 001-1v-6a1 1 0 00-1-1h-1z", color: "blue" },
+          { label: "Open Jobs", value: openJobs, icon: "M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z", color: "green" },
+          { label: "Completed", value: completedJobs, icon: "M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z", color: "slate" }
+        ].map((stat, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.1 }}
+            className={`glass rounded-2xl p-6 border-l-4 border-${stat.color}-500 hover:-translate-y-1 transition-transform`}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">{stat.label}</p>
+                <p className="text-4xl font-extrabold text-slate-900 mt-2">{stat.value}</p>
+              </div>
+              <div className={`bg-${stat.color}-100/50 rounded-xl p-3`}>
+                <svg className={`w-8 h-8 text-${stat.color}-600`} fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule={stat.label !== "Total Jobs" ? "evenodd" : undefined} d={stat.icon} clipRule={stat.label !== "Total Jobs" ? "evenodd" : undefined} />
+                </svg>
+              </div>
             </div>
-            <div className="bg-blue-100 rounded-lg p-3">
-              <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h1a1 1 0 001-1v-6a1 1 0 00-1-1h-1z" />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-600">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm font-medium">Open Jobs</p>
-              <p className="text-4xl font-bold text-gray-900 mt-2">{openJobs}</p>
-            </div>
-            <div className="bg-green-100 rounded-lg p-3">
-              <svg className="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-gray-600">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm font-medium">Completed</p>
-              <p className="text-4xl font-bold text-gray-900 mt-2">{completedJobs}</p>
-            </div>
-            <div className="bg-gray-100 rounded-lg p-3">
-              <svg className="w-8 h-8 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-            </div>
-          </div>
-        </div>
+          </motion.div>
+        ))}
       </div>
 
       {loading && (
-        <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-          <p className="text-gray-600">Loading your jobs…</p>
-        </div>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass rounded-2xl p-8 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">Loading your jobs…</p>
+        </motion.div>
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-800">{error}</p>
-        </div>
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
+          <p className="text-red-800 font-medium">{error}</p>
+        </motion.div>
       )}
 
       {!loading && !error && jobs.length === 0 && (
-        <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-          <div className="mb-4">
-            <span className="text-6xl">📋</span>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="glass rounded-3xl p-12 text-center"
+        >
+          <div className="mb-6">
+            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-blue-50 mb-4">
+              <span className="text-5xl">📋</span>
+            </div>
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No jobs yet</h3>
-          <p className="text-gray-600 mb-6">You haven't posted any jobs yet. Create your first job to get started.</p>
+          <h3 className="text-2xl font-bold text-slate-900 mb-3">No jobs yet</h3>
+          <p className="text-slate-500 mb-8 max-w-md mx-auto">You haven't posted any jobs yet. Create your first job to get started finding professionals for your tasks.</p>
           <button
             onClick={handleOpenModal}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-white font-medium hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-4 text-white font-semibold hover:bg-blue-700 hover:-translate-y-0.5 shadow-lg shadow-blue-500/30 transition-all text-lg"
           >
             Create your first job
           </button>
-        </div>
+        </motion.div>
       )}
 
       {jobs.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass rounded-2xl overflow-hidden shadow-sm"
+        >
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-slate-200/50">
+              <thead className="bg-slate-50/50 backdrop-blur-sm">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Sr.No
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Job Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Details
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Location
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Date & Time
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-slate-200/50">
                 {jobs.map((item, index) => {
                   const schedule = [item.schedule_date, item.schedule_time].filter(Boolean).join(" ");
                   return (
-                    <tr key={item.jobId} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <motion.tr
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: index * 0.05 }}
+                      key={item.jobId}
+                      onClick={() => navigate(`/jobs/${item.jobId}`)}
+                      className="hover:bg-slate-50/50 transition-colors cursor-pointer group"
+                    >
+                      <td className="px-6 py-5 whitespace-nowrap text-sm font-semibold text-slate-900">
                         {index + 1}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-5 whitespace-nowrap text-sm font-medium text-slate-900">
                         {item.subCategoryName}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                      <td className="px-6 py-5 text-sm text-slate-600 max-w-xs truncate">
                         {item.details}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-5 whitespace-nowrap text-sm text-slate-600">
                         {item.location}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-5 whitespace-nowrap text-sm text-slate-500">
                         {schedule || "—"}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.status === "open"
-                          ? "bg-green-100 text-green-800"
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${item.status === "open"
+                          ? "bg-green-100 text-green-700"
                           : item.status === "completed"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-yellow-100 text-yellow-800"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-amber-100 text-amber-700"
                           }`}>
                           {item.status || "open"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-6 py-5 whitespace-nowrap text-sm font-medium">
                         <button
-                          onClick={() => navigate(`/jobs/${item.jobId}`)}
-                          className="text-blue-600 hover:text-blue-900 transition-colors"
+                          className="text-indigo-600 hover:text-indigo-900 group-hover:underline font-semibold transition-colors"
                         >
                           View Details
                         </button>
                       </td>
-                    </tr>
+                    </motion.tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Create Job Modal */}
@@ -467,29 +483,29 @@ export function UserDashboard() {
             </select>
           </div>
 
-          {/* Sub-category */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Sub-category *</label>
-            <select
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-colors bg-white"
-              value={selectedSubcatId}
-              onChange={(e) => setSelectedSubcatId(e.target.value ? Number(e.target.value) : "")}
-              disabled={!selectedCategoryId}
-            >
-              <option value="">
-                {!selectedCategoryId ? "Select a category first" : "Select sub-category"}
-              </option>
-              {selectedCategoryId !== "" &&
-                (subcategoriesByParent.get(Number(selectedCategoryId)) || []).map((sc) => (
-                  <option key={sc.id} value={sc.id}>
-                    {sc.name}
-                  </option>
-                ))}
-            </select>
-            {errors.jobTaskId && (
-              <p className="mt-1 text-xs text-red-600">{errors.jobTaskId.message as string}</p>
-            )}
-          </div>
+          {/* Service Needed */}
+          {!!selectedCategoryId && (
+            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Service Needed *</label>
+              <select
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-colors bg-white"
+                value={selectedSubcatId}
+                onChange={(e) => setSelectedSubcatId(e.target.value ? Number(e.target.value) : "")}
+                disabled={!selectedCategoryId}
+              >
+                <option value="">Select a service</option>
+                {!!selectedCategoryId &&
+                  (subcategoriesByParent.get(Number(selectedCategoryId)) || []).map((sc) => (
+                    <option key={sc.id} value={sc.id}>
+                      {sc.name}
+                    </option>
+                  ))}
+              </select>
+              {errors.jobTaskId && (
+                <p className="mt-1 text-xs text-red-600">{errors.jobTaskId.message as string}</p>
+              )}
+            </div>
+          )}
 
           {/* Details */}
           <div className="md:col-span-2">

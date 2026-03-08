@@ -95,18 +95,18 @@ export default function UserRegister() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="glass rounded-3xl p-10 sm:p-12 mb-auto mt-auto max-h-[90vh] overflow-y-auto"
+            className="glass rounded-3xl p-6 sm:p-8 mb-auto mt-auto max-h-[90vh] overflow-y-auto"
           >
-            <div className="mb-8 sticky top-0 backdrop-blur-md pb-4 -mx-8 px-8 border-b border-white/20 z-10">
-              <h2 className="text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">
+            <div className="mb-4 sticky top-0 backdrop-blur-md pb-3 -mx-6 px-6 sm:-mx-8 sm:px-8 border-b border-white/20 z-10">
+              <h2 className="text-3xl font-extrabold text-slate-900 mb-1 tracking-tight">
                 Create Account
               </h2>
-              <p className="text-slate-500 text-lg">
+              <p className="text-slate-500 text-sm sm:text-base">
                 Join us to post jobs and find services
               </p>
             </div>
 
-            <form className="space-y-4" onSubmit={onSubmit}>
+            <form className="space-y-3" onSubmit={onSubmit}>
               <div className="space-y-1">
                 <Input
                   label="Full Name"
@@ -189,15 +189,15 @@ export default function UserRegister() {
                 />
               </div>
 
-              <div className="pt-4">
+              <div className="pt-2">
                 <Button type="submit" className="w-full shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all text-lg font-semibold h-12 rounded-xl" size="lg">
                   Create Account
                 </Button>
               </div>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-slate-200/50 text-center">
-              <p className="text-base text-slate-600">
+            <div className="mt-4 pt-4 border-t border-slate-200/50 text-center">
+              <p className="text-sm sm:text-base text-slate-600">
                 Already have an account?{" "}
                 <Link to="/login" className="font-bold text-blue-600 hover:text-indigo-600 transition-colors ml-1">
                   Sign in here

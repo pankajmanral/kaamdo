@@ -27,7 +27,7 @@ export default function JobListing() {
 
     const onSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if(!selectedJobId){
+        if (!selectedJobId) {
             alert("No job selected")
             return;
         }
@@ -54,16 +54,17 @@ export default function JobListing() {
     }
 
     const getData = async () => {
-        const token = localStorage.getItem("token")
-        const response: any = await axios.get("http://localhost:4000/api/jobListing", {
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
-            params: {
-                city
-            }
-        })
-        setData(response.data.data)
+        try {
+            const token = localStorage.getItem("token")
+            const response: any = await axios.get("http://localhost:4000/api/jobListing", {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            setData(response.data.data)
+        } catch (error) {
+            console.error("Failed to fetch jobs.", error);
+        }
     }
 
     useEffect(() => {
@@ -115,7 +116,7 @@ export default function JobListing() {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <Button
                                             size="sm"
-                                            onClick={()=>{
+                                            onClick={() => {
                                                 setShowModal(true)
                                                 setSelectedJobId(item.jobId)
                                             }}
@@ -152,7 +153,7 @@ export default function JobListing() {
                         <div className="flex justify-end">
                             <Button
                                 size="sm"
-                                onClick={()=>{
+                                onClick={() => {
                                     setShowModal(true)
                                     setSelectedJobId(item.jobId)
                                 }}

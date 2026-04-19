@@ -73,9 +73,6 @@ export default function JobListing() {
             const response: any = await axios.get("http://localhost:4000/api/jobListing", {
                 headers: {
                     Authorization: `Bearer ${token}`
-                },
-                params: {
-                    city
                 }
             })
             setData(response.data.data || [])
@@ -118,6 +115,7 @@ export default function JobListing() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="glass rounded-3xl p-12 text-center max-w-2xl mx-auto"
                     >
+
                         <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-blue-50 mb-6 shadow-inner border border-blue-100">
                             <span className="text-5xl">🔍</span>
                         </div>

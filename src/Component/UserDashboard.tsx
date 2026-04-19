@@ -9,6 +9,7 @@ import Input from "../components/Input";
 import Select from "../components/Select";
 import Button from "../components/Button";
 import { motion } from "framer-motion";
+import imageCompression from 'browser-image-compression';
 
 const API_BASE_DASH = (import.meta as any).env?.VITE_API_URL || "http://localhost:4000";
 
@@ -24,16 +25,32 @@ const CreateJobSchema = z.object({
     })
   ),
   details: emptyToUndefined(
-    z.string().min(3, "Please add at least 3 characters").max(5000, "Details too long")
+    z.string().min(25, "Please enter at least 25 characters").max(250, "Details too long (max 250)")
   ),
-  city: emptyToUndefined(z.string().min(2, "City name is too short").max(100, "City name is too long")),
-  pincode: emptyToUndefined(z.string().min(4, "Min 4 characters").max(10, "Max 10 characters")),
   scheduled_date: emptyToUndefined(
     z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD")
   ),
   scheduled_time: emptyToUndefined(
     z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, "Time must be HH:mm or HH:mm:ss")
   ),
+}).superRefine((val, ctx) => {
+  if (val.scheduled_date && val.scheduled_time) {
+    const jobDateTime = new Date(`${val.scheduled_date}T${val.scheduled_time}`);
+    const now = new Date();
+    const diffHours = (jobDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    if (diffHours < 3) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Date and time must be at least 3 hours from now",
+        path: ["scheduled_time"],
+      });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Date and time must be at least 3 hours from now",
+        path: ["scheduled_date"],
+      });
+    }
+  }
 });
 type CreateJobForm = z.infer<typeof CreateJobSchema>;
 
@@ -76,6 +93,8 @@ export function UserDashboard() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">("");
   const [selectedSubcatId, setSelectedSubcatId] = useState<number | "">("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false);
 
   const {
     register,
@@ -84,13 +103,13 @@ export function UserDashboard() {
     reset,
     setValue,
     watch,
+    getValues,
   } = useForm<CreateJobForm>({
     resolver: zodResolver(CreateJobSchema) as Resolver<CreateJobForm>,
+    mode: "onChange",
     defaultValues: {
       jobTaskId: undefined,
       details: "",
-      city: "",
-      pincode: "",
       scheduled_date: "",
       scheduled_time: "",
     },
@@ -224,20 +243,36 @@ export function UserDashboard() {
         return;
       }
 
-      const payload: any = { jobTaskId: values.jobTaskId };
-      if (values.details) payload.details = values.details;
-      if (values.city) payload.city = values.city;
-      if (values.pincode) payload.pincode = values.pincode;
-      if (values.scheduled_date) payload.scheduled_date = values.scheduled_date;
-      if (values.scheduled_time) payload.scheduled_time = values.scheduled_time;
+      const formData = new FormData();
+      if (values.jobTaskId) formData.append("jobTaskId", values.jobTaskId.toString());
+      if (values.details) formData.append("details", values.details);
+      if (values.scheduled_date) formData.append("scheduled_date", values.scheduled_date);
+      if (values.scheduled_time) formData.append("scheduled_time", values.scheduled_time);
 
-      await axios.post(`${API_BASE_DASH}/api/createJob`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
+      if (selectedFiles.length > 0) {
+        const options = { maxSizeMB: 1, maxWidthOrHeight: 1280, useWebWorker: true };
+        for (const file of selectedFiles) {
+          try {
+            const compressedFile = await imageCompression(file, options);
+            formData.append("images", compressedFile, compressedFile.name);
+          } catch (error) {
+            console.error("Compression error:", error);
+            formData.append("images", file);
+          }
+        }
+      }
+
+      await axios.post(`${API_BASE_DASH}/api/createJob`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data"
+        },
       });
 
       reset();
       setSelectedCategoryId("");
       setSelectedSubcatId("");
+      setSelectedFiles([]);
       setIsModalOpen(false);
       fetchMyJobs();
     } catch (err: any) {
@@ -266,11 +301,78 @@ export function UserDashboard() {
     reset();
     setSelectedCategoryId("");
     setSelectedSubcatId("");
+    setSelectedFiles([]);
+    setIsTimeDropdownOpen(false);
     setServerError(null);
   };
 
+  const now = new Date();
+  const todayDateString = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+  const selectedDate = watch("scheduled_date");
+  const isToday = selectedDate === todayDateString;
+
+  let minTime = "";
+  if (isToday) {
+    const futureDate = new Date(Date.now() + 3 * 60 * 60 * 1000);
+    const hours = futureDate.getHours().toString().padStart(2, "0");
+    const minutes = futureDate.getMinutes().toString().padStart(2, "0");
+    minTime = `${hours}:${minutes}`;
+  }
+
+  const timeSlots = useMemo(() => {
+    const slots = [];
+    for (let i = 10; i <= 22; i++) {
+      const isPM = i >= 12;
+      const hour12 = i > 12 ? i - 12 : i;
+
+      // 00 minute slot
+      slots.push({
+        label: `${hour12.toString().padStart(2, '0')}:00 ${isPM ? 'PM' : 'AM'}`,
+        value: `${i.toString().padStart(2, '0')}:00`,
+        hour: i,
+        minute: 0
+      });
+
+      // 30 minute slot (skip 10:30 PM if strictly until 10:00 PM)
+      if (i !== 22) {
+        slots.push({
+          label: `${hour12.toString().padStart(2, '0')}:30 ${isPM ? 'PM' : 'AM'}`,
+          value: `${i.toString().padStart(2, '0')}:30`,
+          hour: i,
+          minute: 30
+        });
+      }
+    }
+    return slots;
+  }, []);
+
+  const availableSlots = useMemo(() => {
+    if (!isToday) return timeSlots;
+    const minHour = parseInt(minTime.split(":")[0]) || 0;
+    const minMinute = parseInt(minTime.split(":")[1]) || 0;
+    return timeSlots.filter(slot => {
+      if (slot.hour > minHour) return true;
+      if (slot.hour === minHour && slot.minute >= minMinute) return true;
+      return false;
+    });
+  }, [isToday, timeSlots, minTime]);
+
+  useEffect(() => {
+    if (isToday) {
+      const currentTimeVal = getValues("scheduled_time");
+      const isValidSlot = availableSlots.some(s => s.value === currentTimeVal);
+      if (!isValidSlot) {
+        if (availableSlots.length > 0) {
+          setValue("scheduled_time", availableSlots[0].value, { shouldValidate: true });
+        } else {
+          setValue("scheduled_time", "", { shouldValidate: true });
+        }
+      }
+    }
+  }, [isToday, availableSlots, setValue, getValues]);
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
       {/* Decorative Background Elements */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -z-10 animate-blob"></div>
       <div className="absolute top-20 left-0 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -z-10 animate-blob animation-delay-2000"></div>
@@ -519,54 +621,108 @@ export function UserDashboard() {
             {errors.details && <p className="mt-1 text-xs text-red-600">{errors.details.message as string}</p>}
           </div>
 
-          {/* City */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+          {/* Images */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Upload Images (Max 5)</label>
             <input
-              type="text"
-              placeholder="e.g., Mumbai"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-colors"
-              {...register("city")}
+              type="file"
+              multiple
+              accept="image/*"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-colors bg-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              onChange={(e) => {
+                if (e.target.files) {
+                  setSelectedFiles(Array.from(e.target.files).slice(0, 5));
+                }
+              }}
             />
-            {errors.city && <p className="mt-1 text-xs text-red-600">{errors.city.message as string}</p>}
-          </div>
-
-          {/* Pincode */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Pincode</label>
-            <input
-              type="text"
-              placeholder="e.g., 400001"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-colors"
-              {...register("pincode")}
-            />
-            {errors.pincode && <p className="mt-1 text-xs text-red-600">{errors.pincode.message as string}</p>}
-          </div>
-
-          {/* Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
-            <input
-              type="date"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-colors"
-              {...register("scheduled_date")}
-            />
-            {errors.scheduled_date && (
-              <p className="mt-1 text-xs text-red-600">{errors.scheduled_date.message as string}</p>
+            {selectedFiles.length > 0 && (
+              <p className="mt-2 text-xs text-gray-500">{selectedFiles.length} file(s) selected.</p>
             )}
           </div>
 
-          {/* Time */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
-            <input
-              type="time"
-              step={60}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-colors"
-              {...register("scheduled_time")}
-            />
+          {/* Date */}
+          <div className="relative group">
+            <label className="block text-sm font-semibold text-slate-700 mb-2 transition-colors group-focus-within:text-indigo-600">Schedule Date</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+              </div>
+              <input
+                type="date"
+                min={todayDateString}
+                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 font-medium outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 focus:bg-white hover:bg-white hover:border-slate-300 transition-all shadow-sm"
+                {...register("scheduled_date", {
+                  onChange: (e) => {
+                    if (e.target.value && e.target.value < todayDateString) {
+                      setValue("scheduled_date", todayDateString, { shouldValidate: true });
+                    }
+                  }
+                })}
+              />
+            </div>
+            {errors.scheduled_date && (
+              <p className="mt-1.5 text-xs text-red-500 font-medium flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                {errors.scheduled_date.message as string}
+              </p>
+            )}
+          </div>
+
+          {/* Time Limit Slot Dropdown */}
+          <div className="relative group">
+            <label className="block text-sm font-semibold text-slate-700 mb-2 transition-colors group-focus-within:text-indigo-600">Time Slot</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none z-10">
+                <svg className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsTimeDropdownOpen(!isTimeDropdownOpen)}
+                className="w-full pl-11 pr-10 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 font-medium outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 hover:bg-white hover:border-slate-300 transition-all shadow-sm text-left flex items-center justify-between"
+              >
+                <span className={watch("scheduled_time") ? "text-slate-800" : "text-slate-400"}>
+                  {availableSlots.find(s => s.value === watch("scheduled_time"))?.label || "Select a time slot"}
+                </span>
+              </button>
+
+              <input type="hidden" {...register("scheduled_time")} />
+
+              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none z-10">
+                <svg className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${isTimeDropdownOpen ? 'rotate-180 text-indigo-500' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+
+              {isTimeDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsTimeDropdownOpen(false)} />
+                  <div className="absolute z-50 w-full bottom-full mb-2 bg-white border border-slate-100 rounded-xl shadow-xl max-h-60 overflow-y-auto py-1 custom-scrollbar ring-1 ring-black ring-opacity-5 origin-bottom">
+                    {availableSlots.length > 0 ? (
+                      availableSlots.map(slot => (
+                        <div
+                          key={slot.value}
+                          onClick={() => {
+                            setValue("scheduled_time", slot.value, { shouldValidate: true });
+                            setIsTimeDropdownOpen(false);
+                          }}
+                          className={`px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors hover:bg-indigo-50 hover:text-indigo-700 ${watch("scheduled_time") === slot.value ? 'bg-indigo-100 text-indigo-700' : 'text-slate-700'}`}
+                        >
+                          {slot.label}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-sm font-medium text-red-500">
+                        No slots available today
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
             {errors.scheduled_time && (
-              <p className="mt-1 text-xs text-red-600">{errors.scheduled_time.message as string}</p>
+              <p className="mt-1.5 text-xs text-red-500 font-medium flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                {errors.scheduled_time.message as string}
+              </p>
             )}
           </div>
 

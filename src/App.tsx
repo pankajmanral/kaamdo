@@ -10,6 +10,8 @@ import UserLogin from "./Component/UserLogin";
 import { UserDashboard } from "./Component/UserDashboard";
 import NewJobPage from "./Component/NewJobPage";
 import Layout from "./components/Layout";
+import CompleteUserProfile from "./Component/CompleteUserProfile";
+import CompleteVendorProfile from "./Component/CompleteVendorProfile";
 
 import AssignedJobs from "./Component/AssignedJobs";
 import JobBidsPage from "./Component/JobBidsPage";
@@ -40,7 +42,6 @@ axios.interceptors.response.use(
 		return Promise.reject(error);
 	}
 );
-
 export default function App() {
 	return (
 		<Router>
@@ -60,6 +61,8 @@ export default function App() {
 					</Route>
 					<Route path="/login" element={<UserLogin />} />
 					<Route path="/register" element={<UserRegister />} />
+					<Route path="/complete-user-profile" element={<CompleteUserProfile />} />
+					<Route path="/complete-vendor-profile" element={<CompleteVendorProfile />} />
 				</Routes>
 			</Layout>
 			<ToastContainer

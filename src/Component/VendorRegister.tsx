@@ -4,6 +4,8 @@ import Input from "../components/Input";
 import Select from "../components/Select";
 import Button from "../components/Button";
 import { useForm } from "react-hook-form";
+import { GoogleLogin } from "@react-oauth/google";
+import axios from "axios";
 import { motion } from "framer-motion";
 
 interface VendorRegisterForm {
@@ -62,6 +64,38 @@ export default function VendorRegister() {
         }
     }
 
+    const handleSocialLogin = async (provider: "google" | "apple", credentialToken: string, firstName?: string, lastName?: string) => {
+        try {
+            const response = await axios.post("http://localhost:4000/api/auth/social/login", {
+                provider,
+                token: credentialToken,
+                role: "vendor",
+                firstName,
+                lastName
+            });
+
+            if (response.status === 200) {
+                localStorage.setItem("token", response.data.data.token);
+                if (response.data.data.name) {
+                    localStorage.setItem("vendorName", response.data.data.name);
+                }
+                if (!response.data.data.isProfileComplete) {
+                    toast.info("Please complete your vendor profile to continue");
+                    navigate("/complete-vendor-profile");
+                } else {
+                    toast.success("Account created successfully");
+                    navigate("/vendor-dashboard");
+                }
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to link social account");
+        }
+    };
+
+    // Apple login placeholder (actual Apple JS SDK integration required for production)
+    const handleAppleLogin = () => {
+        toast.info("Apple login configuration required.");
+    };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
@@ -247,6 +281,53 @@ export default function VendorRegister() {
                             </div>
                         </form>
 
+                        <div className="mt-8">
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-slate-200/50"></div>
+                                </div>
+                                <div className="relative flex justify-center text-sm">
+                                    <span className="px-3 bg-slate-50 text-slate-500 font-medium">Or sign up with</span>
+                                </div>
+                            </div>
+
+                            <div className="mt-6 grid grid-cols-2 gap-4">
+                                <div>
+                                    <div className="w-full flex justify-center items-center overflow-hidden rounded-xl h-11 border border-slate-200 bg-white hover:bg-slate-50 transition-all [&>div]:!w-full [&>div>div]:!w-full [&_iframe]:!w-full">
+                                        <GoogleLogin
+                                            onSuccess={(credentialResponse) => {
+                                                if (credentialResponse.credential) {
+                                                    handleSocialLogin("google", credentialResponse.credential);
+                                                }
+                                            }}
+                                            onError={() => {
+                                                toast.error("Google login failed");
+                                            }}
+                                            useOneTap
+                                            theme="outline"
+                                            size="large"
+                                            width="100%"
+                                            type="standard"
+                                            shape="rectangular"
+                                            context="signup"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <button
+                                        onClick={handleAppleLogin}
+                                        type="button"
+                                        className="w-full flex items-center justify-center px-4 py-2 border border-slate-200 rounded-xl shadow-sm text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 hover:-translate-y-0.5 transition-all"
+                                    >
+                                        <svg className="h-5 w-5 mr-2 text-slate-900" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.43.987 3.96.945 1.565-.027 2.606-1.479 3.605-2.934 1.156-1.685 1.636-3.321 1.662-3.414-.033-.013-3.183-1.22-3.216-4.858-.026-3.04 2.484-4.507 2.598-4.58-1.453-2.124-3.693-2.414-4.498-2.486-1.921-.17-3.844 1.144-4.832 1.144-.974 0-2.583-1.121-4.226-1.085L12.152 6.896zm-1.04-6.494c-.053.013-.105.027-.158.04-1.42.065-3.064.912-3.936 2.095-.778.938-1.346 2.195-1.187 3.425.04.013.08.026.12.026 1.488-.04 2.973-.836 3.868-2.036.852-1.066 1.345-2.275 1.293-3.55z" />
+                                        </svg>
+                                        Apple
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="mt-8 pt-6 border-t border-slate-200/50 text-center">
                             <p className="text-base text-slate-600">
                                 Already a vendor?{" "}
@@ -296,7 +377,7 @@ export default function VendorRegister() {
                         </div>
                     </motion.div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

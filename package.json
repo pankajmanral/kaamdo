@@ -12,6 +12,7 @@
     "@types/jest": "^27.5.2",
     "@types/node": "^16.18.126",
     "axios": "^1.12.2",
+    "browser-image-compression": "^2.0.2",
     "clsx": "^2.1.1",
     "framer-motion": "^12.35.1",
     "lucide-react": "^0.553.0",

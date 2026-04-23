@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { usePlacesWidget } from "react-google-autocomplete";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -30,6 +31,10 @@ const CreateJobSchema = z.object({
   scheduled_time: emptyToUndefined(
     z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, "Time must be HH:mm or HH:mm:ss")
   ),
+  address: emptyToUndefined(z.string().min(2, "Address too short")),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  placeId: emptyToUndefined(z.string()),
 });
 type CreateJobForm = z.infer<typeof CreateJobSchema>;
 
@@ -65,6 +70,32 @@ export default function NewJobPage() {
       pincode: "",
       scheduled_date: "",
       scheduled_time: "",
+      address: "",
+      latitude: undefined,
+      longitude: undefined,
+      placeId: "",
+    },
+  });
+
+  const { ref } = usePlacesWidget({
+    apiKey: (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY || "",
+    onPlaceSelected: (place: any) => {
+      if (place.formatted_address) {
+        setValue("address", place.formatted_address, { shouldValidate: true });
+      } else if (place.name) {
+        setValue("address", place.name, { shouldValidate: true });
+      }
+      if (place.geometry?.location) {
+        setValue("latitude", place.geometry.location.lat());
+        setValue("longitude", place.geometry.location.lng());
+      }
+      if (place.place_id) {
+        setValue("placeId", place.place_id);
+      }
+    },
+    options: {
+      types: ["geocode", "establishment"],
+      componentRestrictions: { country: "in" },
     },
   });
 
@@ -148,6 +179,10 @@ export default function NewJobPage() {
       if (values.pincode) payload.pincode = values.pincode;
       if (values.scheduled_date) payload.scheduled_date = values.scheduled_date;
       if (values.scheduled_time) payload.scheduled_time = values.scheduled_time;
+      if (values.address) payload.address = values.address;
+      if (values.latitude !== undefined) payload.latitude = values.latitude;
+      if (values.longitude !== undefined) payload.longitude = values.longitude;
+      if (values.placeId) payload.placeId = values.placeId;
 
       await axios.post(`${API_BASE}/api/createJob`, payload, {
         headers: { Authorization: `Bearer ${token}` },
@@ -267,6 +302,22 @@ export default function NewJobPage() {
               {errors.details && (
                 <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="mt-2 text-xs font-medium text-red-500 bg-red-50 px-2 py-1 rounded inline-block">
                   {errors.details.message as string}
+                </motion.p>
+              )}
+            </div>
+
+            {/* Location Search API */}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Location via Map</label>
+              <input
+                type="text"
+                ref={ref as any}
+                placeholder="Search precise location (e.g., Swastik Park)"
+                className="w-full rounded-xl border border-slate-200/60 bg-white/70 px-4 py-3.5 text-slate-900 placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm backdrop-blur-sm"
+              />
+              {errors.address && (
+                <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="mt-2 text-xs font-medium text-red-500 bg-red-50 px-2 py-1 rounded inline-block">
+                  {errors.address.message as string}
                 </motion.p>
               )}
             </div>

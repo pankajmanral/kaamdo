@@ -18,6 +18,7 @@
     "lucide-react": "^0.553.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-google-autocomplete": "^2.7.5",
     "react-hook-form": "^7.65.0",
     "react-router-dom": "^7.9.1",
     "react-scripts": "5.0.1",

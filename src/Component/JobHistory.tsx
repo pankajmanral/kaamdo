@@ -1,6 +1,6 @@
-import { Link, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import axios from "axios"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { motion } from "framer-motion"
 
 interface CompletedJobData {
@@ -17,7 +17,7 @@ export default function JobHistory() {
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
 
-    async function getData() {
+    const getData = useCallback(async () => {
         try {
             setLoading(true)
             const token = localStorage.getItem("token")
@@ -39,11 +39,11 @@ export default function JobHistory() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [navigate])
 
     useEffect(() => {
         getData()
-    }, [])
+    }, [getData])
 
     const containerVariants = {
         hidden: { opacity: 0 },

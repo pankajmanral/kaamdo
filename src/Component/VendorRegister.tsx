@@ -1,4 +1,4 @@
-import { data, Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Input from "../components/Input";
 import Select from "../components/Select";

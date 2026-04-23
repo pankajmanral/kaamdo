@@ -5,9 +5,6 @@ import { useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Modal from "../components/Modal";
-import Input from "../components/Input";
-import Select from "../components/Select";
-import Button from "../components/Button";
 import { motion } from "framer-motion";
 import imageCompression from 'browser-image-compression';
 

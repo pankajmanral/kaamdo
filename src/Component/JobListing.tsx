@@ -16,7 +16,11 @@ interface Job {
     schedule_date: string | null,
     schedule_time: string | null,
     city?: string,
-    hasBidded?: boolean
+    hasBidded?: boolean,
+    latitude?: number | null,
+    longitude?: number | null,
+    address?: string | null,
+    distance?: number | null
 }
 
 export default function JobListing() {
@@ -178,14 +182,29 @@ export default function JobListing() {
                                                 <td className="px-6 py-5 whitespace-nowrap">
                                                     <div className="text-sm font-medium text-slate-900 flex items-center gap-1.5">
                                                         <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                                        {item.location || item.city || "Not specified"}
+                                                        {item.address || item.city || item.location || "Not specified"}
                                                     </div>
                                                     <div className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
                                                         <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                                         {[item.schedule_date, item.schedule_time].filter(Boolean).join(" ") || "Flexible timing"}
                                                     </div>
+                                                    {item.distance && (
+                                                        <div className="text-xs text-indigo-500 mt-1 font-bold">
+                                                          {item.distance} km away
+                                                        </div>
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
+                                                    {item.latitude && item.longitude && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="mr-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50 shadow-sm"
+                                                            onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`, '_blank')}
+                                                        >
+                                                            Navigate
+                                                        </Button>
+                                                    )}
                                                     <Button
                                                         size="sm"
                                                         className={`shadow-md shadow-indigo-500/20 transition-all ${item.hasBidded ? 'opacity-50 cursor-not-allowed bg-slate-400 hover:bg-slate-400 hover:shadow-none' : 'hover:shadow-indigo-500/40 hover:-translate-y-0.5 opacity-90 group-hover:opacity-100'}`}
@@ -237,8 +256,8 @@ export default function JobListing() {
 
                                     <div className="grid grid-cols-2 gap-3 mb-5 text-sm">
                                         <div className="flex flex-col gap-1">
-                                            <span className="text-slate-500 text-xs font-semibold uppercase">Location</span>
-                                            <span className="text-slate-900 font-medium">{item.location || item.city || "Any"}</span>
+                                            <span className="text-slate-500 text-xs font-semibold uppercase">Location {item.distance ? `(${item.distance} km away)` : ""}</span>
+                                            <span className="text-slate-900 font-medium">{item.address || item.city || item.location || "Any"}</span>
                                         </div>
                                         <div className="flex flex-col gap-1">
                                             <span className="text-slate-500 text-xs font-semibold uppercase">Timing</span>
@@ -248,17 +267,28 @@ export default function JobListing() {
                                         </div>
                                     </div>
 
-                                    <Button
-                                        className={`w-full shadow-md shadow-indigo-500/20 ${item.hasBidded ? 'opacity-50 cursor-not-allowed bg-slate-400 hover:bg-slate-400 hover:shadow-none' : ''}`}
-                                        onClick={() => {
-                                            if (item.hasBidded) return;
-                                            setShowModal(true)
-                                            setSelectedJobId(item.jobId)
-                                        }}
-                                        disabled={item.hasBidded}
-                                    >
-                                        {item.hasBidded ? "Bid Placed" : "Place Bid"}
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        {item.latitude && item.longitude && (
+                                            <Button
+                                                variant="outline"
+                                                className="w-full border-indigo-200 text-indigo-600 hover:bg-indigo-50 shadow-sm shadow-indigo-500/10"
+                                                onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`, '_blank')}
+                                            >
+                                                Navigate
+                                            </Button>
+                                        )}
+                                        <Button
+                                            className={`w-full shadow-md shadow-indigo-500/20 ${item.hasBidded ? 'opacity-50 cursor-not-allowed bg-slate-400 hover:bg-slate-400 hover:shadow-none' : ''}`}
+                                            onClick={() => {
+                                                if (item.hasBidded) return;
+                                                setShowModal(true)
+                                                setSelectedJobId(item.jobId)
+                                            }}
+                                            disabled={item.hasBidded}
+                                        >
+                                            {item.hasBidded ? "Bid Placed" : "Place Bid"}
+                                        </Button>
+                                    </div>
                                 </motion.div>
                             ))}
                         </div>
